@@ -5,10 +5,19 @@ import Control.Concurrent.Chan
 import Data.Text as T
 import Data.List as L
 import Data.Maybe as M
+import Control.Concurrent.MVar as V
 import Blaze.ByteString.Builder.Char.Utf8 (fromText)
 import Network.Wai.EventSource (ServerEvent (..), eventSourceApp)
 
-data Tfoo = Tfoo { channels :: [IO (Chan ServerEvent)] }
+data Game = Game {
+  players :: (MVar String, MVar String),
+  channel :: Chan ServerEvent
+}
+
+data Tfoo = Tfoo {
+    games      :: [IO Game],
+    nextGameId :: (MVar Int)
+  }
 
 mkYesod "Tfoo" [parseRoutes|
 /               HomeR GET
@@ -30,26 +39,34 @@ getHomeR = do
 
 postGamesR :: Handler RepHtml
 postGamesR = do
-  redirect $ GameR 4
+  tfoo <- getYesod
+  id <- liftIO $ registerGame tfoo
+  redirect $ GameR id
+
+registerGame :: Tfoo -> IO Int
+registerGame tfoo =
+  modifyMVar (nextGameId tfoo) (\value -> return (value+1, value))
 
 getGameR :: Int -> Handler RepHtml
 getGameR id = do
   defaultLayout [whamlet| Hi there|]
 
-lastFreeChannel :: [IO (Chan ServerEvent)] -> IO Int
-lastFreeChannel (x:xs) = do
-  channel <- x
-  empty <- isEmptyChan channel
-  if empty
-    then return 0
-    else do
-      value <- lastFreeChannel xs
-      return (value +1)
-
 channelStream :: [IO (Chan ServerEvent)]
 channelStream = do
   L.map (\channel -> newChan) [1..]
 
+gameStream :: [IO Game]
+gameStream = L.map (\id -> do
+      playerOne <- newEmptyMVar
+      playerTwo <- newEmptyMVar
+      channel <- newChan
+      return Game {
+        players = (playerOne, playerTwo),
+        channel = channel
+      }
+    ) [1..]
+
 main :: IO ()
 main = do
-  warpDebug 3000 (Tfoo channelStream)
+  nextGameId <- newMVar 1
+  warpDebug 3000 (Tfoo gameStream nextGameId)
