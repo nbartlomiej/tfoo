@@ -40,20 +40,16 @@ getHomeR = do
 postGamesR :: Handler RepHtml
 postGamesR = do
   tfoo <- getYesod
-  id <- liftIO $ registerGame tfoo
+  id <- liftIO $ createGame tfoo
   redirect $ GameR id
 
-registerGame :: Tfoo -> IO Int
-registerGame tfoo =
+createGame :: Tfoo -> IO Int
+createGame tfoo =
   modifyMVar (nextGameId tfoo) (\value -> return (value+1, value))
 
 getGameR :: Int -> Handler RepHtml
 getGameR id = do
   defaultLayout [whamlet| Hi there|]
-
-channelStream :: [IO (Chan ServerEvent)]
-channelStream = do
-  L.map (\channel -> newChan) [1..]
 
 gameStream :: [IO Game]
 gameStream = L.map (\id -> do
