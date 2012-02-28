@@ -7,11 +7,12 @@ import Data.List as L
 import Blaze.ByteString.Builder.Char.Utf8 (fromText)
 import Network.Wai.EventSource (ServerEvent (..), eventSourceApp)
 
-data Tfoo = Tfoo
-  { channel :: [IO (Chan ServerEvent)] }
+data Tfoo = Tfoo { channels :: [IO (Chan ServerEvent)] }
 
 mkYesod "Tfoo" [parseRoutes|
-/ HomeR GET
+/               HomeR GET
+/games          GamesR POST
+/games/#Int     GameR GET
 |]
 
 instance Yesod Tfoo
@@ -19,12 +20,25 @@ instance Yesod Tfoo
 getHomeR :: Handler RepHtml
 getHomeR = do
   tfoo <- getYesod
-  defaultLayout [whamlet| Empty |]
+  defaultLayout [whamlet|
+    <p>
+      Start a new Take Five game with a human opponent
+    <form method=post action=@{GamesR}>
+      <input type=submit value="NEW GAME">
+  |]
 
-channels :: [IO (Chan ServerEvent)]
-channels = do
+postGamesR :: Handler RepHtml
+postGamesR = do
+  redirect $ GameR 4
+
+getGameR :: Int -> Handler RepHtml
+getGameR id = do
+  defaultLayout [whamlet| Hi there|]
+
+channelStream :: [IO (Chan ServerEvent)]
+channelStream = do
   L.map (\channel -> newChan) [1..]
 
 main :: IO ()
 main = do
-  warpDebug 3000 (Tfoo $ channels)
+  warpDebug 3000 (Tfoo channelStream)
