@@ -4,6 +4,7 @@ import Yesod
 import Control.Concurrent.Chan
 import Data.Text as T
 import Data.List as L
+import Data.Maybe as M
 import Blaze.ByteString.Builder.Char.Utf8 (fromText)
 import Network.Wai.EventSource (ServerEvent (..), eventSourceApp)
 
@@ -34,6 +35,16 @@ postGamesR = do
 getGameR :: Int -> Handler RepHtml
 getGameR id = do
   defaultLayout [whamlet| Hi there|]
+
+lastFreeChannel :: [IO (Chan ServerEvent)] -> IO Int
+lastFreeChannel (x:xs) = do
+  channel <- x
+  empty <- isEmptyChan channel
+  if empty
+    then return 0
+    else do
+      value <- lastFreeChannel xs
+      return (value +1)
 
 channelStream :: [IO (Chan ServerEvent)]
 channelStream = do
