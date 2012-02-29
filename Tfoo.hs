@@ -17,8 +17,8 @@ data Game = Game {
 }
 
 data Tfoo = Tfoo {
-    games      :: [IO Game],
-    nextGameId :: (MVar Int)
+    games      :: MVar [IO Game],
+    nextGameId :: MVar Int
   }
 
 mkYesod "Tfoo" [parseRoutes|
@@ -50,14 +50,23 @@ newGameId :: Tfoo -> IO Int
 newGameId tfoo =
   modifyMVar (nextGameId tfoo) (\value -> return (value+1, value))
 
+updateGame :: Int -> Game -> Handler ()
+updateGame id game = do
+  tfoo <- getYesod
+  liftIO $ modifyMVar (games tfoo) (\games ->
+      return (Takefive.replace id (return game) games, games)
+    )
+  return ()
+
 joinGame :: Int -> Takefive.Mark -> Handler ()
 joinGame id mark =
   let accessor = if mark == Takefive.O then fst else snd
       playerId = (show id) ++ (show mark)
   in do
     game <- getGame id
-    liftIO $ modifyMVar (accessor $ players game) (\v -> return (playerId, v))
     setSession "player" $ T.pack playerId
+    liftIO $ modifyMVar (accessor $ players game) (\v -> return (playerId, v))
+    updateGame id game
     return ()
 
 getGameR :: Int -> Handler RepHtml
@@ -77,8 +86,9 @@ getGame :: Int -> Handler Game
 getGame id = do
   tfoo <- getYesod
   maxId <- liftIO $ readMVar $ nextGameId tfoo
+  list  <- liftIO $ readMVar $ games tfoo
   if id < maxId
-    then (liftIO $ (games tfoo) !! id) >>= (\game -> return game)
+    then (liftIO $ (list) !! id) >>= (\game -> return game)
     else notFound
 
 
@@ -100,4 +110,5 @@ gameStream = repeat createGame
 main :: IO ()
 main = do
   nextGameId <- newMVar 1
-  warpDebug 3000 (Tfoo gameStream nextGameId)
+  games <- newMVar gameStream
+  warpDebug 3000 (Tfoo games nextGameId)
