@@ -42,29 +42,31 @@ getHomeR = do
 postGamesR :: Handler RepHtml
 postGamesR = do
   tfoo <- getYesod
-  id <- liftIO $ createGame tfoo
+  id <- liftIO $ newGameId tfoo
   redirect $ GameR id
 
-createGame :: Tfoo -> IO Int
-createGame tfoo =
+newGameId :: Tfoo -> IO Int
+newGameId tfoo =
   modifyMVar (nextGameId tfoo) (\value -> return (value+1, value))
 
 getGameR :: Int -> Handler RepHtml
 getGameR id = do
   defaultLayout [whamlet| Hi there|]
 
+createGame :: IO Game
+createGame = do
+  playerOne <- newEmptyMVar
+  playerTwo <- newEmptyMVar
+  board     <- newMVar $ Takefive.generateBoard 20
+  channel <- newChan
+  return Game {
+    players = (playerOne, playerTwo),
+    channel = channel,
+    board   = board
+  }
+
 gameStream :: [IO Game]
-gameStream = L.map (\id -> do
-      playerOne <- newEmptyMVar
-      playerTwo <- newEmptyMVar
-      board     <- newMVar $ Takefive.generateBoard 20
-      channel <- newChan
-      return Game {
-        players = (playerOne, playerTwo),
-        channel = channel,
-        board   = board
-      }
-    ) [1..]
+gameStream = repeat createGame
 
 main :: IO ()
 main = do
