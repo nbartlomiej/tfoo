@@ -43,16 +43,35 @@ postGamesR :: Handler RepHtml
 postGamesR = do
   tfoo <- getYesod
   id <- liftIO $ newGameId tfoo
+  joinGame id Takefive.O
   redirect $ GameR id
 
 newGameId :: Tfoo -> IO Int
 newGameId tfoo =
   modifyMVar (nextGameId tfoo) (\value -> return (value+1, value))
 
+joinGame :: Int -> Takefive.Mark -> Handler ()
+joinGame id mark =
+  let accessor = if mark == Takefive.O then fst else snd
+      playerId = (show id) ++ (show mark)
+  in do
+    game <- getGame id
+    liftIO $ modifyMVar (accessor $ players game) (\v -> return (playerId, v))
+    setSession "player" $ T.pack playerId
+    return ()
+
 getGameR :: Int -> Handler RepHtml
 getGameR id = do
-  game <- getGame id
-  defaultLayout [whamlet| Hi there|]
+  game   <- getGame id
+  player <- lookupSession "player"
+  o <- liftIO $ readMVar $ fst $ players game
+  -- if Just o /= (player >>= (\p -> return $ T.unpack p) )
+  --   then joinGame id Takefive.X
+  --   else return ()
+  defaultLayout [whamlet|
+    Hi there
+    #{o}
+  |]
 
 getGame :: Int -> Handler Game
 getGame id = do
@@ -65,8 +84,8 @@ getGame id = do
 
 createGame :: IO Game
 createGame = do
-  playerOne <- newEmptyMVar
-  playerTwo <- newEmptyMVar
+  playerOne <- newMVar "initial player one"
+  playerTwo <- newMVar "initial player two"
   board     <- newMVar $ Takefive.generateBoard 20
   channel <- newChan
   return Game {
