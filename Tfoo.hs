@@ -51,7 +51,17 @@ newGameId tfoo =
 
 getGameR :: Int -> Handler RepHtml
 getGameR id = do
+  game <- getGame id
   defaultLayout [whamlet| Hi there|]
+
+getGame :: Int -> Handler Game
+getGame id = do
+  tfoo <- getYesod
+  maxId <- liftIO $ readMVar $ nextGameId tfoo
+  if id < maxId
+    then (liftIO $ (games tfoo) !! id) >>= (\game -> return game)
+    else notFound
+
 
 createGame :: IO Game
 createGame = do
