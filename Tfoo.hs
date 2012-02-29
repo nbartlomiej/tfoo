@@ -11,9 +11,9 @@ import Blaze.ByteString.Builder.Char.Utf8 (fromText)
 import Network.Wai.EventSource (ServerEvent (..), eventSourceApp)
 
 data Game = Game {
-  players :: (MVar String, MVar String),
+  players :: (String, String),
   channel :: Chan ServerEvent,
-  board   :: MVar Takefive.Board
+  board   :: Takefive.Board
 }
 
 data Tfoo = Tfoo {
@@ -65,21 +65,25 @@ joinGame id mark =
   in do
     game <- getGame id
     setSession "player" $ T.pack playerId
-    liftIO $ modifyMVar (accessor $ players game) (\v -> return (playerId, v))
-    updateGame id game
+    updateGame id Game {
+      -- Attention, bug here.
+      players = (playerId, ""),
+      channel = channel game,
+      board = board game
+    }
     return ()
 
 getGameR :: Int -> Handler RepHtml
 getGameR id = do
   game   <- getGame id
   player <- lookupSession "player"
-  o <- liftIO $ readMVar $ fst $ players game
+  -- o <- liftIO $ readMVar $ 
   -- if Just o /= (player >>= (\p -> return $ T.unpack p) )
   --   then joinGame id Takefive.X
   --   else return ()
   defaultLayout [whamlet|
     Hi there
-    #{o}
+    #{fst $ players game}
   |]
 
 getGame :: Int -> Handler Game
@@ -94,14 +98,11 @@ getGame id = do
 
 createGame :: IO Game
 createGame = do
-  playerOne <- newMVar "initial player one"
-  playerTwo <- newMVar "initial player two"
-  board     <- newMVar $ Takefive.generateBoard 20
   channel <- newChan
   return Game {
-    players = (playerOne, playerTwo),
+    players = ("", ""),
     channel = channel,
-    board   = board
+    board   = Takefive.generateBoard 20
   }
 
 gameStream :: [IO Game]
