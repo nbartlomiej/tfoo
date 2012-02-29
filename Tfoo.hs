@@ -1,6 +1,7 @@
 {-# LANGUAGE TypeFamilies, QuasiQuotes, MultiParamTypeClasses,
              TemplateHaskell, OverloadedStrings #-}
 import Yesod
+import Takefive as Takefive
 import Control.Concurrent.Chan
 import Data.Text as T
 import Data.List as L
@@ -11,7 +12,8 @@ import Network.Wai.EventSource (ServerEvent (..), eventSourceApp)
 
 data Game = Game {
   players :: (MVar String, MVar String),
-  channel :: Chan ServerEvent
+  channel :: Chan ServerEvent,
+  board   :: MVar Takefive.Board
 }
 
 data Tfoo = Tfoo {
@@ -55,10 +57,12 @@ gameStream :: [IO Game]
 gameStream = L.map (\id -> do
       playerOne <- newEmptyMVar
       playerTwo <- newEmptyMVar
+      board     <- newMVar $ Takefive.generateBoard 20
       channel <- newChan
       return Game {
         players = (playerOne, playerTwo),
-        channel = channel
+        channel = channel,
+        board   = board
       }
     ) [1..]
 
