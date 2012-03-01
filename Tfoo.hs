@@ -17,6 +17,10 @@ data Game = Game {
   board   :: Board
 }
 
+setPlayer :: Game -> Mark -> String -> Game
+setPlayer game O playerId = game { playerO = playerId }
+setPlayer game X playerId = game { playerX = playerId }
+
 data Tfoo = Tfoo {
     games      :: MVar [IO Game],
     nextGameId :: MVar Int
@@ -42,13 +46,11 @@ getHomeR = do
 
 postGamesR :: Handler RepHtml
 postGamesR = do
-  tfoo <- getYesod
-  id <- liftIO $ newGameId tfoo
-  redirect $ GameR id
-
-newGameId :: Tfoo -> IO Int
-newGameId tfoo =
-  modifyMVar (nextGameId tfoo) (\value -> return (value+1, value))
+    tfoo <- getYesod
+    id <- liftIO $ newGameId tfoo
+    redirect $ GameR id
+  where newGameId tfoo = modifyMVar (nextGameId tfoo) incrementMVar
+        incrementMVar value = return (value+1, value)
 
 updateGame :: Int -> Game -> Handler ()
 updateGame id game = do
@@ -57,10 +59,6 @@ updateGame id game = do
       return (Takefive.replace id (return game) games, games)
     )
   return ()
-
-setPlayer :: Game -> Mark -> String -> Game
-setPlayer game O playerId = game { playerO = playerId }
-setPlayer game X playerId = game { playerX = playerId }
 
 joinGame :: Int -> Mark -> Handler ()
 joinGame id mark =
