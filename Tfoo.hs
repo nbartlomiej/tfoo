@@ -97,6 +97,14 @@ postPlayerXR :: Int -> Handler ()
 postPlayerXR id = do
     return ()
 
+type Category = String
+broadcast :: Int -> Category -> String -> Handler ()
+broadcast channelId category text = do
+  game <- getGame channelId
+  liftIO $ writeChan (channel game) $ serverEvent $ return $ fromText message
+  where message = T.pack $ "{category: "++category++", content: "++text++"}"
+        serverEvent = ServerEvent Nothing Nothing
+
 getChannelR :: Int -> Handler ()
 getChannelR id = do
   game <- getGame id
