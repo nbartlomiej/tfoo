@@ -99,11 +99,11 @@ postPlayerXR id = do
 
 getChannelR :: Int -> Handler ()
 getChannelR id = do
-    game <- getGame id
-    chan <- liftIO $ dupChan $ channel game
-    req  <- waiRequest
-    res  <- lift $ eventSourceApp chan req
-    sendWaiResponse res
+  game <- getGame id
+  chan <- liftIO $ dupChan $ channel game
+  req  <- waiRequest
+  res  <- lift $ eventSourceApp chan req
+  sendWaiResponse res
 
 getGame :: Int -> Handler Game
 getGame id = do
@@ -113,7 +113,6 @@ getGame id = do
   if id < maxId
     then (liftIO $ (list) !! id) >>= (\game -> return game)
     else notFound
-
 
 createGame :: IO Game
 createGame = do
