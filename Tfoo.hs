@@ -71,7 +71,23 @@ getGameR id = do
   game <- getGame id
   maybePlayer <- lookupSession "player"
   defaultLayout $ do
-    toWidget [hamlet|
+    toWidgetHead [lucius|
+      #channel {
+        background: #ccc;
+        width: 400px;
+        height: 200px;
+      }
+    |]
+    toWidgetHead [julius|
+      var getOutput = function(){ return document.getElementById("channel"); };
+      var src = new EventSource("@{ChannelR id}");
+      src.onmessage = function(message) {
+          var p = document.createElement("p");
+          p.appendChild(document.createTextNode(message.data));
+          getOutput().appendChild(p);
+      };
+    |]
+    [whamlet|
       Hi there
       <div>
         Player one:
@@ -80,22 +96,6 @@ getGameR id = do
         Player two:
         #{show $ playerX game}
       <div #channel>
-    |]
-    toWidgetHead [lucius|
-      #channel {
-        background: #ccc;
-        width: 400px;
-        height: 200px;
-      }
-    |]
-    toWidget [julius|
-      var getOutput = function(){ return document.getElementById("channel"); };
-      var src = new EventSource("@{ChannelR id}");
-      src.onmessage = function(message) {
-          var p = document.createElement("p");
-          p.appendChild(document.createTextNode(message.data));
-          getOutput().appendChild(p);
-      };
     |]
 
 
@@ -125,7 +125,6 @@ broadcast :: Int -> Category -> String -> Handler ()
 broadcast gameId category text = do
   game <- getGame gameId
   liftIO $ writeChan (channel game) $ serverEvent $ return $ fromText message
-  updateGame gameId game
   where message = T.pack $ "{category: "++category++", content: "++text++"}"
         serverEvent = ServerEvent Nothing Nothing
 
