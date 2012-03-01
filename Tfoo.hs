@@ -27,9 +27,12 @@ data Tfoo = Tfoo {
   }
 
 mkYesod "Tfoo" [parseRoutes|
-/               HomeR GET
-/games          GamesR POST
-/games/#Int     GameR GET
+/                       HomeR GET
+/games                  GamesR POST
+/games/#Int             GameR GET
+/games/#Int/join/o      PlayerOR POST
+/games/#Int/join/x      PlayerXR POST
+/games/#Int/listen      ChannelR GET
 |]
 
 instance Yesod Tfoo
@@ -47,11 +50,12 @@ getHomeR = do
 postGamesR :: Handler RepHtml
 postGamesR = do
     tfoo <- getYesod
-    id <- liftIO $ newGameId tfoo
+    id   <- liftIO $ newGameId tfoo
     redirect $ GameR id
   where newGameId tfoo = modifyMVar (nextGameId tfoo) incrementMVar
         incrementMVar value = return (value+1, value)
 
+-- todo: refactor
 updateGame :: Int -> Game -> Handler ()
 updateGame id game = do
   tfoo <- getYesod
@@ -73,14 +77,8 @@ joinGame id mark =
 
 getGameR :: Int -> Handler RepHtml
 getGameR id = do
-  game   <- getGame id
+  game <- getGame id
   maybePlayer <- lookupSession "player"
-  -- maybePlayer <- lookupSession "player"
-  -- if any (=="") (map [fst, snd] (players game))
-  -- if maybePlayer == Nothing || ((T.unpack $ M.fromJust maybePlayer) /= (fst $ players game))
-  -- joinGame id O
-  --   then joinGame id X
-  --   else return ()
   defaultLayout [whamlet|
     Hi there
     <div>
@@ -90,6 +88,22 @@ getGameR id = do
       Player two:
       #{playerX game}
   |]
+
+postPlayerOR :: Int -> Handler ()
+postPlayerOR id = do
+    return ()
+
+postPlayerXR :: Int -> Handler ()
+postPlayerXR id = do
+    return ()
+
+getChannelR :: Int -> Handler ()
+getChannelR id = do
+    game <- getGame id
+    chan <- liftIO $ dupChan $ channel game
+    req  <- waiRequest
+    res  <- lift $ eventSourceApp chan req
+    sendWaiResponse res
 
 getGame :: Int -> Handler Game
 getGame id = do
