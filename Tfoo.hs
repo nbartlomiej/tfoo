@@ -55,15 +55,6 @@ postGamesR = do
   where newGameId tfoo = modifyMVar (nextGameId tfoo) incrementMVar
         incrementMVar value = return (value+1, value)
 
--- todo: refactor
-updateGame :: Int -> Game -> Handler ()
-updateGame id game = do
-  tfoo <- getYesod
-  liftIO $ modifyMVar (games tfoo) (\games ->
-      return (Takefive.replace id (return game) games, games)
-    )
-  return ()
-
 joinGame :: Int -> Mark -> Handler ()
 joinGame id mark =
   do
@@ -79,29 +70,62 @@ getGameR :: Int -> Handler RepHtml
 getGameR id = do
   game <- getGame id
   maybePlayer <- lookupSession "player"
-  defaultLayout [whamlet|
-    Hi there
-    <div>
-      Player one:
-      #{show $ playerO game}
-    <div>
-      Player two:
-      #{show $ playerX game}
-  |]
+  defaultLayout $ do
+    toWidget [hamlet|
+      Hi there
+      <div>
+        Player one:
+        #{show $ playerO game}
+      <div>
+        Player two:
+        #{show $ playerX game}
+      <div #channel>
+    |]
+    toWidgetHead [lucius|
+      #channel {
+        background: #ccc;
+        width: 400px;
+        height: 200px;
+      }
+    |]
+    toWidget [julius|
+      var getOutput = function(){ return document.getElementById("channel"); };
+      var src = new EventSource("@{ChannelR id}");
+      src.onmessage = function(message) {
+          var p = document.createElement("p");
+          p.appendChild(document.createTextNode(message.data));
+          getOutput().appendChild(p);
+      };
+    |]
+
 
 postPlayerOR :: Int -> Handler ()
 postPlayerOR id = do
-    return ()
+  game <- getGame id
+  if (playerO game) == Nothing
+    then do
+      joinGame id O
+      broadcast id "playerO" "joined"
+      return ()
+    else return ()
 
 postPlayerXR :: Int -> Handler ()
 postPlayerXR id = do
-    return ()
+  game <- getGame id
+  broadcast id "debug" "postPlayerXR"
+  if (playerX game) == Nothing
+    then do
+      joinGame id X
+      broadcast id "playerX" "joined"
+      return ()
+    else return ()
 
 type Category = String
 broadcast :: Int -> Category -> String -> Handler ()
-broadcast channelId category text = do
-  game <- getGame channelId
+broadcast gameId category text = do
+  game <- getGame gameId
   liftIO $ writeChan (channel game) $ serverEvent $ return $ fromText message
+  updateGame gameId game
   where message = T.pack $ "{category: "++category++", content: "++text++"}"
         serverEvent = ServerEvent Nothing Nothing
 
@@ -111,6 +135,7 @@ getChannelR id = do
   chan <- liftIO $ dupChan $ channel game
   req  <- waiRequest
   res  <- lift $ eventSourceApp chan req
+  updateGame id game
   sendWaiResponse res
 
 getGame :: Int -> Handler Game
@@ -121,6 +146,16 @@ getGame id = do
   if id < maxId
     then (liftIO $ (list) !! id) >>= (\game -> return game)
     else notFound
+
+-- todo: refactor
+updateGame :: Int -> Game -> Handler ()
+updateGame id game = do
+  tfoo <- getYesod
+  liftIO $ modifyMVar (games tfoo) (\games ->
+      return (Takefive.replace id (return game) games, games)
+    )
+  return ()
+
 
 createGame :: IO Game
 createGame = do
