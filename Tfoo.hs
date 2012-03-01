@@ -11,15 +11,15 @@ import Blaze.ByteString.Builder.Char.Utf8 (fromText)
 import Network.Wai.EventSource (ServerEvent (..), eventSourceApp)
 
 data Game = Game {
-  playerX :: String,
-  playerO :: String,
+  playerX :: Maybe String,
+  playerO :: Maybe String,
   channel :: Chan ServerEvent,
   board   :: Board
 }
 
 setPlayer :: Game -> Mark -> String -> Game
-setPlayer game O playerId = game { playerO = playerId }
-setPlayer game X playerId = game { playerX = playerId }
+setPlayer game O playerId = game { playerO = Just playerId }
+setPlayer game X playerId = game { playerX = Just playerId }
 
 data Tfoo = Tfoo {
     games      :: MVar [IO Game],
@@ -83,10 +83,10 @@ getGameR id = do
     Hi there
     <div>
       Player one:
-      #{playerO game}
+      #{show $ playerO game}
     <div>
       Player two:
-      #{playerX game}
+      #{show $ playerX game}
   |]
 
 postPlayerOR :: Int -> Handler ()
@@ -119,8 +119,8 @@ createGame :: IO Game
 createGame = do
   channel <- newChan
   return Game {
-    playerO = "",
-    playerX = "",
+    playerO = Nothing,
+    playerX = Nothing,
     channel = channel,
     board   = generateBoard 20
   }
