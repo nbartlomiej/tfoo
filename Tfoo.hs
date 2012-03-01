@@ -1,7 +1,7 @@
 {-# LANGUAGE TypeFamilies, QuasiQuotes, MultiParamTypeClasses,
              TemplateHaskell, OverloadedStrings #-}
 import Yesod
-import Takefive as Takefive
+import Takefive
 import Control.Concurrent.Chan
 import Data.Text as T
 import Data.List as L
@@ -11,9 +11,10 @@ import Blaze.ByteString.Builder.Char.Utf8 (fromText)
 import Network.Wai.EventSource (ServerEvent (..), eventSourceApp)
 
 data Game = Game {
-  players :: (String, String),
+  playerX :: String,
+  playerO :: String,
   channel :: Chan ServerEvent,
-  board   :: Takefive.Board
+  board   :: Board
 }
 
 data Tfoo = Tfoo {
@@ -43,7 +44,6 @@ postGamesR :: Handler RepHtml
 postGamesR = do
   tfoo <- getYesod
   id <- liftIO $ newGameId tfoo
-  joinGame id Takefive.O
   redirect $ GameR id
 
 newGameId :: Tfoo -> IO Int
@@ -58,32 +58,39 @@ updateGame id game = do
     )
   return ()
 
-joinGame :: Int -> Takefive.Mark -> Handler ()
+setPlayer :: Game -> Mark -> String -> Game
+setPlayer game O playerId = game { playerO = playerId }
+setPlayer game X playerId = game { playerX = playerId }
+
+joinGame :: Int -> Mark -> Handler ()
 joinGame id mark =
-  let accessor = if mark == Takefive.O then fst else snd
-      playerId = (show id) ++ (show mark)
-  in do
+  do
     game <- getGame id
     setSession "player" $ T.pack playerId
-    updateGame id Game {
-      -- Attention, bug here.
-      players = (playerId, ""),
-      channel = channel game,
-      board = board game
-    }
+    updateGame id $ setPlayer game mark playerId
     return ()
+  where
+    updatePlayer (o,x) = if mark == O then (playerId, x) else (o, playerId)
+    playerId = (show id) ++ (show mark)
 
 getGameR :: Int -> Handler RepHtml
 getGameR id = do
   game   <- getGame id
-  player <- lookupSession "player"
-  -- o <- liftIO $ readMVar $ 
-  -- if Just o /= (player >>= (\p -> return $ T.unpack p) )
-  --   then joinGame id Takefive.X
+  maybePlayer <- lookupSession "player"
+  -- maybePlayer <- lookupSession "player"
+  -- if any (=="") (map [fst, snd] (players game))
+  -- if maybePlayer == Nothing || ((T.unpack $ M.fromJust maybePlayer) /= (fst $ players game))
+  -- joinGame id O
+  --   then joinGame id X
   --   else return ()
   defaultLayout [whamlet|
     Hi there
-    #{fst $ players game}
+    <div>
+      Player one:
+      #{playerO game}
+    <div>
+      Player two:
+      #{playerX game}
   |]
 
 getGame :: Int -> Handler Game
@@ -100,9 +107,10 @@ createGame :: IO Game
 createGame = do
   channel <- newChan
   return Game {
-    players = ("", ""),
+    playerO = "",
+    playerX = "",
     channel = channel,
-    board   = Takefive.generateBoard 20
+    board   = generateBoard 20
   }
 
 gameStream :: [IO Game]
