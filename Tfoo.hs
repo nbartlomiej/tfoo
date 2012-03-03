@@ -9,6 +9,7 @@ import Data.Maybe as M
 import Control.Concurrent.MVar as V
 import Blaze.ByteString.Builder.Char.Utf8 (fromText)
 import Network.Wai.EventSource (ServerEvent (..), eventSourceApp)
+import Text.Hamlet (hamletFile)
 
 data Game = Game {
   playerX :: Maybe String,
@@ -63,7 +64,6 @@ joinGame id mark =
     updateGame id $ setPlayer game mark playerId
     return ()
   where
-    updatePlayer (o,x) = if mark == O then (playerId, x) else (o, playerId)
     playerId = (show id) ++ (show mark)
 
 getGameR :: Int -> Handler RepHtml
@@ -78,6 +78,7 @@ getGameR id = do
         height: 200px;
       }
     |]
+    addScriptRemote "https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"
     toWidgetHead [julius|
       var getOutput = function(){ return document.getElementById("channel"); };
       var src = new EventSource("@{ChannelR id}");
@@ -85,16 +86,38 @@ getGameR id = do
           var p = document.createElement("p");
           p.appendChild(document.createTextNode(message.data));
           getOutput().appendChild(p);
+          var message = eval(message.data);
+          if (message.text == "joined"){
+            if (message.category == "playerX"){
+            } else if (message.category == "playerO"){
+            }
+          }
+
+      };
+      document.post = function(url){
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", url);
+        xhr.send(null);
       };
     |]
     [whamlet|
-      Hi there
-      <div>
-        Player one:
-        #{show $ playerO game}
-      <div>
-        Player two:
-        #{show $ playerX game}
+      <div .players>
+        <div #player_x>
+          $maybe player <- (playerX game)
+            <div #joined >
+              Joined.
+          $nothing
+            <div #no_x >
+              <a onclick="document.post('@{PlayerXR id}')">
+                Join as X
+        <div #player_o>
+          $maybe player <- (playerO game)
+            <div #joined >
+              Joined.
+          $nothing
+            <div #no_o >
+              <a onclick="document.post('@{PlayerOR id}')">
+                Join as O
       <div #channel>
     |]
 
@@ -105,27 +128,29 @@ postPlayerOR id = do
   if (playerO game) == Nothing
     then do
       joinGame id O
-      broadcast id "playerO" "joined"
+      broadcast id "player-y-joined" []
       return ()
     else return ()
 
 postPlayerXR :: Int -> Handler ()
 postPlayerXR id = do
   game <- getGame id
-  broadcast id "debug" "postPlayerXR"
+  broadcast id "debug" [("message", "Invoked postPlayerXR")]
   if (playerX game) == Nothing
     then do
       joinGame id X
-      broadcast id "playerX" "joined"
+      broadcast id "player-x-joined" []
       return ()
     else return ()
 
 type Category = String
-broadcast :: Int -> Category -> String -> Handler ()
-broadcast gameId category text = do
+broadcast :: Int -> String -> [(String, String)] -> Handler ()
+broadcast gameId messageId pairs = do
   game <- getGame gameId
   liftIO $ writeChan (channel game) $ serverEvent $ return $ fromText message
-  where message = T.pack $ "{category: "++category++", content: "++text++"}"
+  where message = T.pack $ "{id: '"++messageId++"' "++stringifiedPairs++"}"
+        stringifiedPairs = L.intercalate ", " $ L.map stringifyPair pairs
+        stringifyPair p = (fst p) ++ ": '" ++ (snd p) ++ "'"
         serverEvent = ServerEvent Nothing Nothing
 
 getChannelR :: Int -> Handler ()
