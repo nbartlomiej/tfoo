@@ -6,7 +6,9 @@ import Control.Concurrent.Chan
 import Data.Text as T
 import Data.List as L
 import Data.Maybe as M
+import System.Random as R
 import Control.Concurrent.MVar as V
+import Data.Monoid
 import Blaze.ByteString.Builder.Char.Utf8 (fromText)
 import Network.Wai.EventSource (ServerEvent (..), eventSourceApp)
 import Text.Hamlet (hamletFile)
@@ -23,6 +25,7 @@ setPlayer game O playerId = game { playerO = Just playerId }
 setPlayer game X playerId = game { playerX = Just playerId }
 
 data Tfoo = Tfoo {
+    seed       :: Int,
     games      :: MVar [IO Game],
     nextGameId :: MVar Int
   }
@@ -60,16 +63,18 @@ joinGame :: Int -> Mark -> Handler ()
 joinGame id mark =
   do
     game <- getGame id
-    setSession "player" $ T.pack playerId
-    updateGame id $ setPlayer game mark playerId
+    tfoo <- getYesod
+    -- setSession "player" $ T.pack (playerId tfoo)
+    appendSession' "players" $ T.pack (playerId tfoo)
+    updateGame id $ setPlayer game mark (playerId tfoo)
     return ()
   where
-    playerId = (show id) ++ (show mark)
+    playerId tfoo = (show $ seed tfoo) ++ (show id) ++ (show mark)
 
 getGameR :: Int -> Handler RepHtml
 getGameR id = do
   game <- getGame id
-  maybePlayer <- lookupSession "player"
+  maybePlayers <- lookupSession "players"
   defaultLayout $ do
     toWidgetHead [lucius|
       #channel {
@@ -102,8 +107,8 @@ getGameR id = do
           $maybe player <- (playerX game)
             <div #joined >
               Joined
-              $maybe you <- maybePlayer
-                $if (T.unpack you) == player
+              $maybe you <- maybePlayers
+                $if elem player (L.words $ T.unpack you)
                   (You)
                 $else
           $nothing
@@ -114,8 +119,8 @@ getGameR id = do
           $maybe player <- (playerO game)
             <div #joined >
               Joined
-              $maybe you <- maybePlayer
-                $if (T.unpack you) == player
+              $maybe you <- maybePlayers
+                $if elem player (L.words $ T.unpack you)
                   (You)
                 $else
           $nothing
@@ -124,7 +129,6 @@ getGameR id = do
                 <input value="Join as O" type=submit>
       <div #channel>
     |]
-
 
 postPlayerOR :: Int -> Handler RepHtml
 postPlayerOR id = do
@@ -169,6 +173,16 @@ getChannelR id = do
   updateGame id game
   sendWaiResponse res
 
+-- Appends the given value to the session key.
+appendSession :: Text -> Text -> Handler ()
+appendSession name value = do
+  initial <- lookupSession name
+  setSession name $ fromJust $ initial `mappend` Just value
+
+-- Appends the given value to the session key, inserts space before the value.
+appendSession' :: Text -> Text -> Handler ()
+appendSession' name value = appendSession name (T.pack " " `mappend` value)
+
 getGame :: Int -> Handler Game
 getGame id = do
   tfoo <- getYesod
@@ -205,4 +219,5 @@ main :: IO ()
 main = do
   nextGameId <- newMVar 1
   games <- newMVar gameStream
-  warpDebug 3000 (Tfoo games nextGameId)
+  seedP <- liftIO $ getStdGen >>= (\x -> return $ next x)
+  warpDebug 3000 (Tfoo (fst seedP) games nextGameId)
