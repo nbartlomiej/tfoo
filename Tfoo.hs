@@ -80,17 +80,13 @@ getGameR id = do
     |]
     addScriptRemote "https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"
     toWidgetHead [julius|
-      var getOutput = function(){ return document.getElementById("channel"); };
       var src = new EventSource("@{ChannelR id}");
-      src.onmessage = function(message) {
-          var p = document.createElement("p");
-          p.appendChild(document.createTextNode(message.data));
-          getOutput().appendChild(p);
-          var message = eval(message.data);
+      src.onmessage = function(input) {
+          $("#channel").append(document.createTextNode(input.data));
+          console.log(input.data);
+          var message = JSON.parse(input.data);
           if (message.id == "player-joined"){
-            if (message.category == "playerX"){
-            } else if (message.category == "playerO"){
-            }
+            $("#no_player_"+message.side).replaceWith("<div>Joined</div>");
           }
 
       };
@@ -111,45 +107,47 @@ getGameR id = do
                   (You)
                 $else
           $nothing
-            <div #no_x >
-              <a onclick="document.post('@{PlayerXR id}')">
-                Join as X
+            <div #no_player_X >
+              <form method=post action=@{PlayerXR id}>
+                <input value="Join as X" type=submit>
         <div #player_o>
           $maybe player <- (playerO game)
             <div #joined >
-              Joined.
+              Joined
               $maybe you <- maybePlayer
                 $if (T.unpack you) == player
                   (You)
                 $else
           $nothing
-            <div #no_o >
-              <a onclick="document.post('@{PlayerOR id}')">
-                Join as O
+            <div #no_player_O >
+              <form method=post action=@{PlayerOR id}>
+                <input value="Join as O" type=submit>
       <div #channel>
     |]
 
 
-postPlayerOR :: Int -> Handler ()
+postPlayerOR :: Int -> Handler RepHtml
 postPlayerOR id = do
   game <- getGame id
   if (playerO game) == Nothing
     then do
       joinGame id O
-      broadcast id "player-joined" [("data", "O")]
+      broadcast id "player-joined" [("side", "O")]
       return ()
     else return ()
+  redirect $ GameR id
 
-postPlayerXR :: Int -> Handler ()
+postPlayerXR :: Int -> Handler RepHtml
 postPlayerXR id = do
   game <- getGame id
   broadcast id "debug" [("message", "Invoked postPlayerXR")]
   if (playerX game) == Nothing
     then do
       joinGame id X
-      broadcast id "player-joined" [("data", "X")]
+      broadcast id "player-joined" [("side", "X")]
       return ()
     else return ()
+  redirect $ GameR id
 
 
 type Category = String
@@ -157,9 +155,9 @@ broadcast :: Int -> String -> [(String, String)] -> Handler ()
 broadcast gameId messageId pairs = do
   game <- getGame gameId
   liftIO $ writeChan (channel game) $ serverEvent $ return $ fromText message
-  where message = T.pack $ "{id: '"++messageId++"' "++stringifiedPairs++"}"
-        stringifiedPairs = L.intercalate ", " $ L.map stringifyPair pairs
-        stringifyPair p = (fst p) ++ ": '" ++ (snd p) ++ "'"
+  where message = T.pack $ "{"++(stringifiedPairs $ ("id",messageId):pairs)++"}"
+        stringifiedPairs pairs = L.intercalate ", " $ L.map stringifyPair pairs
+        stringifyPair p = "\""++(fst p) ++ "\": \"" ++ (snd p) ++ "\""
         serverEvent = ServerEvent Nothing Nothing
 
 getChannelR :: Int -> Handler ()
