@@ -87,7 +87,7 @@ getGameR id = do
           p.appendChild(document.createTextNode(message.data));
           getOutput().appendChild(p);
           var message = eval(message.data);
-          if (message.text == "joined"){
+          if (message.id == "player-joined"){
             if (message.category == "playerX"){
             } else if (message.category == "playerO"){
             }
@@ -105,7 +105,11 @@ getGameR id = do
         <div #player_x>
           $maybe player <- (playerX game)
             <div #joined >
-              Joined.
+              Joined
+              $maybe you <- maybePlayer
+                $if (T.unpack you) == player
+                  (You)
+                $else
           $nothing
             <div #no_x >
               <a onclick="document.post('@{PlayerXR id}')">
@@ -114,6 +118,10 @@ getGameR id = do
           $maybe player <- (playerO game)
             <div #joined >
               Joined.
+              $maybe you <- maybePlayer
+                $if (T.unpack you) == player
+                  (You)
+                $else
           $nothing
             <div #no_o >
               <a onclick="document.post('@{PlayerOR id}')">
@@ -128,7 +136,7 @@ postPlayerOR id = do
   if (playerO game) == Nothing
     then do
       joinGame id O
-      broadcast id "player-y-joined" []
+      broadcast id "player-joined" [("data", "O")]
       return ()
     else return ()
 
@@ -139,9 +147,10 @@ postPlayerXR id = do
   if (playerX game) == Nothing
     then do
       joinGame id X
-      broadcast id "player-x-joined" []
+      broadcast id "player-joined" [("data", "X")]
       return ()
     else return ()
+
 
 type Category = String
 broadcast :: Int -> String -> [(String, String)] -> Handler ()
