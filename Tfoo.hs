@@ -31,12 +31,13 @@ data Tfoo = Tfoo {
   }
 
 mkYesod "Tfoo" [parseRoutes|
-/                       HomeR GET
-/games                  GamesR POST
-/games/#Int             GameR GET
-/games/#Int/join/o      PlayerOR POST
-/games/#Int/join/x      PlayerXR POST
-/games/#Int/listen      ChannelR GET
+/                           HomeR GET
+/games                      GamesR POST
+/games/#Int                 GameR GET
+/games/#Int/join/o          PlayerOR POST
+/games/#Int/join/x          PlayerXR POST
+/games/#Int/mark/#Int/#Int  MarkR POST
+/games/#Int/listen          ChannelR GET
 |]
 
 instance Yesod Tfoo
@@ -72,63 +73,83 @@ joinGame id mark =
     playerId tfoo = (show $ seed tfoo) ++ (show id) ++ (show mark)
 
 getGameR :: Int -> Handler RepHtml
-getGameR id = do
-  game <- getGame id
-  maybePlayers <- lookupSession "players"
-  defaultLayout $ do
-    toWidgetHead [lucius|
-      #channel {
-        background: #ccc;
-        width: 400px;
-        height: 200px;
-      }
-    |]
-    addScriptRemote "https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"
-    toWidgetHead [julius|
-      var src = new EventSource("@{ChannelR id}");
-      src.onmessage = function(input) {
-          $("#channel").append(document.createTextNode(input.data));
-          console.log(input.data);
-          var message = JSON.parse(input.data);
-          if (message.id == "player-joined"){
-            $("#no_player_"+message.side).replaceWith("<div>Joined</div>");
-          }
+getGameR id = let
+    columns = [0..19]
+    rows    = [0..19]
+  in do
+    game <- getGame id
+    maybePlayers <- lookupSession "players"
+    tfoo <- getYesod
+    defaultLayout $ do
+      toWidgetHead [lucius|
+        #channel {
+          background: #ccc;
+          width: 400px;
+          height: 200px;
+        }
+      |]
+      addScriptRemote "https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"
+      toWidgetHead [julius|
+        var src = new EventSource("@{ChannelR id}");
+        src.onmessage = function(input) {
+            $("#channel").append(document.createTextNode(input.data));
+            console.log(input.data);
+            var message = JSON.parse(input.data);
+            if (message.id == "player-joined"){
+              $("#no_player_"+message.side).replaceWith("<div>Joined</div>");
+            }
 
-      };
-      document.post = function(url){
-        var xhr = new XMLHttpRequest();
-        xhr.open("POST", url);
-        xhr.send(null);
-      };
-    |]
-    [whamlet|
-      <div .players>
-        <div #player_x>
-          $maybe player <- (playerX game)
-            <div #joined >
-              Joined
-              $maybe you <- maybePlayers
-                $if elem player (L.words $ T.unpack you)
-                  (You)
-                $else
-          $nothing
-            <div #no_player_X >
-              <form method=post action=@{PlayerXR id}>
-                <input value="Join as X" type=submit>
-        <div #player_o>
-          $maybe player <- (playerO game)
-            <div #joined >
-              Joined
-              $maybe you <- maybePlayers
-                $if elem player (L.words $ T.unpack you)
-                  (You)
-                $else
-          $nothing
-            <div #no_player_O >
-              <form method=post action=@{PlayerOR id}>
-                <input value="Join as O" type=submit>
-      <div #channel>
-    |]
+        };
+        document.post = function(url){
+          var xhr = new XMLHttpRequest();
+          xhr.open("POST", url);
+          xhr.send(null);
+        };
+      |]
+      [whamlet|
+        <div .players>
+          <div #player_x>
+            $maybe player <- (playerX game)
+              <div #joined >
+                Joined
+                $maybe you <- maybePlayers
+                  $if elem player (L.words $ T.unpack you)
+                    (You)
+                  $else
+            $nothing
+              <div #no_player_X >
+                <form method=post action=@{PlayerXR id}>
+                  <input value="Join as X" type=submit>
+          <div #player_o>
+            $maybe player <- (playerO game)
+              <div #joined >
+                Joined
+                $maybe you <- maybePlayers
+                  $if elem player (L.words $ T.unpack you)
+                    (You)
+                  $else
+            $nothing
+              <div #no_player_O >
+                <form method=post action=@{PlayerOR id}>
+                  <input value="Join as O" type=submit>
+        <table #board>
+          $forall column <- columns
+            <tr>
+              $forall row <- rows
+                <td>
+                  $maybe mark <- getCell (board game) row column
+                    mark
+                  $nothing
+                    <a #cell_#{row}_#{column} ."post-mark" href="" data-x=#{row} data-y=#{column}>
+                      empty
+        <div #channel>
+      |]
+
+postMarkR :: Int -> Int -> Int -> Handler ()
+postMarkR id x y = return ()
+
+getCell :: Board -> Int -> Int -> Cell
+getCell board x y = (((board) !! x) !! y)
 
 postPlayerOR :: Int -> Handler RepHtml
 postPlayerOR id = do
