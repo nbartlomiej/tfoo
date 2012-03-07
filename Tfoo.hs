@@ -24,6 +24,9 @@ setPlayer :: Game -> Mark -> String -> Game
 setPlayer game O playerId = game { playerO = Just playerId }
 setPlayer game X playerId = game { playerX = Just playerId }
 
+getCell :: Board -> Int -> Int -> Cell
+getCell board x y = (((board) !! x) !! y)
+
 data Tfoo = Tfoo {
     seed       :: Int,
     games      :: MVar [IO Game],
@@ -90,21 +93,29 @@ getGameR id = let
       |]
       addScriptRemote "https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"
       toWidgetHead [julius|
-        var src = new EventSource("@{ChannelR id}");
-        src.onmessage = function(input) {
+        var post = function(url){
+          var xhr = new XMLHttpRequest();
+          xhr.open("POST", url);
+          xhr.send(null);
+        };
+        $(document).ready(function() {
+          var src = new EventSource("@{ChannelR id}");
+          src.onmessage = function(input) {
             $("#channel").append(document.createTextNode(input.data));
             console.log(input.data);
             var message = JSON.parse(input.data);
             if (message.id == "player-joined"){
               $("#no_player_"+message.side).replaceWith("<div>Joined</div>");
             }
-
-        };
-        document.post = function(url){
-          var xhr = new XMLHttpRequest();
-          xhr.open("POST", url);
-          xhr.send(null);
-        };
+          };
+          $('.post-mark').each(function(index, element){
+            $(element).click(function(){
+              var x = $(element).attr('data-x');
+              var y = $(element).attr('data-y');
+              post('#{show id}/mark/' + x + '/' + y);
+            });
+          });
+        });
       |]
       [whamlet|
         <div .players>
@@ -140,16 +151,15 @@ getGameR id = let
                   $maybe mark <- getCell (board game) row column
                     mark
                   $nothing
-                    <a #cell_#{row}_#{column} ."post-mark" href="" data-x=#{row} data-y=#{column}>
+                    <div #cell_#{row}_#{column} ."post-mark" data-x=#{row} data-y=#{column}>
                       empty
         <div #channel>
       |]
 
 postMarkR :: Int -> Int -> Int -> Handler ()
-postMarkR id x y = return ()
-
-getCell :: Board -> Int -> Int -> Cell
-getCell board x y = (((board) !! x) !! y)
+postMarkR id x y = do
+  game <- getGame id
+  return ()
 
 postPlayerOR :: Int -> Handler RepHtml
 postPlayerOR id = do
@@ -174,17 +184,6 @@ postPlayerXR id = do
     else return ()
   redirect $ GameR id
 
-
-type Category = String
-broadcast :: Int -> String -> [(String, String)] -> Handler ()
-broadcast gameId messageId pairs = do
-  game <- getGame gameId
-  liftIO $ writeChan (channel game) $ serverEvent $ return $ fromText message
-  where message = T.pack $ "{"++(stringifiedPairs $ ("id",messageId):pairs)++"}"
-        stringifiedPairs pairs = L.intercalate ", " $ L.map stringifyPair pairs
-        stringifyPair p = "\""++(fst p) ++ "\": \"" ++ (snd p) ++ "\""
-        serverEvent = ServerEvent Nothing Nothing
-
 getChannelR :: Int -> Handler ()
 getChannelR id = do
   game <- getGame id
@@ -193,6 +192,15 @@ getChannelR id = do
   res  <- lift $ eventSourceApp chan req
   updateGame id game
   sendWaiResponse res
+
+broadcast :: Int -> String -> [(String, String)] -> Handler ()
+broadcast gameId messageId pairs = do
+  game <- getGame gameId
+  liftIO $ writeChan (channel game) $ serverEvent $ return $ fromText message
+  where message = T.pack $ "{"++(stringifiedPairs $ ("id",messageId):pairs)++"}"
+        stringifiedPairs pairs = L.intercalate ", " $ L.map stringifyPair pairs
+        stringifyPair p = "\""++(fst p) ++ "\": \"" ++ (snd p) ++ "\""
+        serverEvent = ServerEvent Nothing Nothing
 
 -- Appends the given value to the session key.
 appendSession :: Text -> Text -> Handler ()
