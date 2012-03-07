@@ -171,17 +171,17 @@ postMarkR :: Int -> Int -> Int -> Handler ()
 postMarkR id x y = do
   game <- getGame id
   maybePlayers <- lookupSession "players"
-  if (maybePlayers == Nothing) || ((whoseTurn $ game) == Nothing)
-    then return ()
-    else do
-      if elem (fromJust $ whoseTurn $ game) (L.words $ T.unpack $ fromJust maybePlayers)
-        then
-          let mark = nextMark (board game)
-              cell = Just mark
-          in do
-            updateGame id $ game { board = replace' x y cell (board game)}
-            broadcast id "post-mark" [("x", show x),("y", show y),("mark",show mark)]
-        else return ()
+  require $ maybePlayers /= Nothing
+  require $ (whoseTurn game) /= Nothing
+  require $ (getCell (board game) x y) == Nothing
+  require $ elem (fromJust $ whoseTurn $ game) (L.words $ T.unpack $ fromJust maybePlayers)
+  updateGame id $ game { board = replace' x y (Just $ nextMark (board game)) (board game)}
+  broadcast id "post-mark" [("x", show x),("y", show y),("mark",show (nextMark $ board game))]
+
+require :: Bool -> Handler ()
+require result = if result == False
+  then permissionDenied "Permission Denied"
+  else return ()
 
 postPlayerOR :: Int -> Handler RepHtml
 postPlayerOR id = do
