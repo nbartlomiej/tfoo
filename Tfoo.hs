@@ -13,19 +13,28 @@ import Blaze.ByteString.Builder.Char.Utf8 (fromText)
 import Network.Wai.EventSource (ServerEvent (..), eventSourceApp)
 import Text.Hamlet (hamletFile)
 
+type Player = String
 data Game = Game {
-  playerX :: Maybe String,
-  playerO :: Maybe String,
+  playerX :: Maybe Player,
+  playerO :: Maybe Player,
   channel :: Chan ServerEvent,
   board   :: Board
 }
 
-setPlayer :: Game -> Mark -> String -> Game
+setPlayer :: Game -> Mark -> Player -> Game
 setPlayer game O playerId = game { playerO = Just playerId }
 setPlayer game X playerId = game { playerX = Just playerId }
 
 getCell :: Board -> Int -> Int -> Cell
 getCell board x y = (((board) !! x) !! y)
+
+whoseTurn :: Game -> Maybe Player
+whoseTurn g = if nextMark (board g) == O then playerO g else playerX g
+
+nextMark :: Board -> Mark
+nextMark board = if (count X) <= (count O) then X else O where
+  count mark = L.length $ L.filter (Just mark == ) $ L.concat board
+
 
 data Tfoo = Tfoo {
     seed       :: Int,
@@ -106,6 +115,8 @@ getGameR id = let
             var message = JSON.parse(input.data);
             if (message.id == "player-joined"){
               $("#no_player_"+message.side).replaceWith("<div>Joined</div>");
+            } else if (message.id == "post-mark") {
+              console.log(message);
             }
           };
           $('.post-mark').each(function(index, element){
@@ -159,7 +170,18 @@ getGameR id = let
 postMarkR :: Int -> Int -> Int -> Handler ()
 postMarkR id x y = do
   game <- getGame id
-  return ()
+  maybePlayers <- lookupSession "players"
+  if (maybePlayers == Nothing) || ((whoseTurn $ game) == Nothing)
+    then return ()
+    else do
+      if elem (fromJust $ whoseTurn $ game) (L.words $ T.unpack $ fromJust maybePlayers)
+        then
+          let mark = nextMark (board game)
+              cell = Just mark
+          in do
+            updateGame id $ game { board = replace' x y cell (board game)}
+            broadcast id "post-mark" [("x", show x),("y", show y),("mark",show mark)]
+        else return ()
 
 postPlayerOR :: Int -> Handler RepHtml
 postPlayerOR id = do
