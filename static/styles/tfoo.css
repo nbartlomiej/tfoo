@@ -1,0 +1,91 @@
+body {
+  font-family: sans-serif;
+}
+
+.landing-page {
+  width: 500px;
+  padding: 20px;
+  box-shadow: rgba(0,0,0,0.4) 0px 0px 15px 0px;
+}
+
+.landing-page div {
+  line-height: 2em;
+  margin: 1em 0;
+}
+
+.landing-page div form {
+  text-align: center;
+  margin: 1em 0;
+}
+
+#messages {
+  height: 100px;
+  overflow: hidden;
+}
+
+.players {
+  width: 100%;
+  overflow: auto;
+}
+
+.players div {
+  float: left;
+  padding: 10px 10px 10px 0px;
+}
+
+.player-join {
+  margin-top: -13px;
+}
+
+.mark-new {
+  height: 20px;
+  width:  20px;
+  border: 1px solid #aaa;
+}
+
+.mark-O , .mark-X {
+  height: 20px;
+  width:  20px;
+}
+
+.mark-O {
+  background: #900;
+  border: 1px solid #700;
+}
+
+.mark-X {
+  background: #090;
+  border: 1px solid #070;
+}
+
+input[type="submit"] {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 14px;
+	color: #050505;
+	padding: 10px 20px;
+	background: -moz-linear-gradient(
+		top,
+		#ffffff 0%,
+		#ebebeb 50%,
+		#dbdbdb 50%,
+		#b5b5b5);
+	background: -webkit-gradient(
+		linear, left top, left bottom, 
+		from(#ffffff),
+		color-stop(0.50, #ebebeb),
+		color-stop(0.50, #dbdbdb),
+		to(#b5b5b5));
+	border-radius: 10px;
+	-moz-border-radius: 10px;
+	-webkit-border-radius: 10px;
+	border: 1px solid #949494;
+	-moz-box-shadow:
+		0px 1px 3px rgba(000,000,000,0.5),
+		inset 0px 0px 2px rgba(255,255,255,1);
+	-webkit-box-shadow:
+		0px 1px 3px rgba(000,000,000,0.5),
+		inset 0px 0px 2px rgba(255,255,255,1);
+	text-shadow:
+		0px -1px 0px rgba(000,000,000,0.2),
+		0px 1px 0px rgba(255,255,255,1);
+}
