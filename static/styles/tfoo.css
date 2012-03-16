@@ -6,6 +6,9 @@ body {
   width: 500px;
   padding: 20px;
   box-shadow: rgba(0,0,0,0.4) 0px 0px 15px 0px;
+  margin: 30px auto;
+  text-align: justify;
+
 }
 
 .landing-page div {

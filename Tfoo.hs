@@ -1,8 +1,8 @@
 {-# LANGUAGE TypeFamilies, QuasiQuotes, MultiParamTypeClasses,
              TemplateHaskell, OverloadedStrings #-}
+module Tfoo where
 import Yesod
 import Yesod.Static
-import Takefive
 import Control.Concurrent.Chan
 import Data.Text as T
 import Data.List as L
@@ -15,6 +15,44 @@ import Blaze.ByteString.Builder.Char.Utf8 (fromString)
 import Network.Wai.EventSource (ServerEvent (..), eventSourceApp)
 import Text.Hamlet (hamletFile)
 import Text.Lucius (luciusFile)
+
+replace :: Int -> a -> [a] -> [a]
+replace index element list = (L.take index list) ++ [element] ++ (L.drop (index+1) list)
+
+findList :: (Eq a) => [a] -> [a] -> Bool
+findList sequence list = sequence `elem` L.concat (L.map L.inits (L.tails list))
+
+type Matrix a = [[a]]
+
+replace' :: Int -> Int -> a -> Matrix a -> Matrix a
+replace' x y element matrix = Tfoo.replace x (Tfoo.replace y element (matrix !! x)) matrix
+
+diagonal :: Matrix a -> [a]
+diagonal m = L.zipWith (!!) m [0..]
+
+diagonals :: Matrix a -> [[a]]
+diagonals matrix =
+  let tails' = L.tail . L.tails
+      diagonalsNW m = L.map diagonal ([m] ++ tails' m ++ tails' (L.transpose m))
+  in diagonalsNW matrix ++ diagonalsNW (L.map L.reverse matrix)
+
+data Mark = O | X deriving (Eq, Show)
+type Cell = Maybe Mark
+
+type Pattern   = [Cell]
+type Board     = Matrix Cell
+
+generateBoard :: Int -> Board
+generateBoard size = [ [Nothing | x <- [1..size]] | y <- [1..size]]
+
+patterns :: Board -> [Pattern]
+patterns board = board ++ (L.transpose board) ++ (diagonals board)
+
+winner :: Board -> Maybe Mark
+winner board
+  | L.any (findList [Just O, Just O, Just O, Just O, Just O]) (patterns board) = Just O
+  | L.any (findList [Just X, Just X, Just X, Just X, Just X]) (patterns board) = Just X
+  | otherwise = Nothing
 
 type Player = String
 data Game = Game {
@@ -67,14 +105,13 @@ getHomeR = do
     [whamlet|
       <div .landing-page>
         <h1> TFOO!
-        <h2> Take Five Online, Obviously.
+        <h2> Take Five online, obviously.
         <div>
           An implementation of Take Five game (wikipedia) that utilizes Haskell,
           Yesod (Haskell web framework) and EventSource (http://caniuse.com/eventsource).
         <div>
-          Start a new Take Five game with a human opponent
           <form method=post action=@{GamesR}>
-            <input type=submit value="NEW GAME">
+            <input type=submit value="START GAME">
         <div> Read a blog post:
         <div> View source on GitHub:
     |]
@@ -84,7 +121,7 @@ postGamesR = do
     tfoo <- getYesod
     id   <- liftIO $ newGameId tfoo
     redirect $ GameR id
-  where -- Increment tfoo's 
+  where -- Increment Tfoo's Game counter and return id of the next new Game.
         newGameId :: Tfoo -> IO Int
         newGameId tfoo = modifyMVar (nextGameId tfoo) incrementMVar
 
@@ -295,7 +332,7 @@ updateGame :: Int -> Game -> Handler ()
 updateGame id game = do
   tfoo <- getYesod
   liftIO $ modifyMVar (games tfoo) (\games ->
-      return (Takefive.replace id (return game) games, games)
+      return (replace id (return game) games, games)
     )
   return ()
 
