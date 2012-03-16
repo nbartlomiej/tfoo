@@ -1,58 +1,34 @@
 {-# LANGUAGE TypeFamilies, QuasiQuotes, MultiParamTypeClasses,
              TemplateHaskell, OverloadedStrings #-}
 module Tfoo where
-import Yesod
-import Yesod.Static
-import Control.Concurrent.Chan
+
+-- General functions that help operating on game data.
+import Helpers
+
+-- Specific functions implementing Take Five game logic.
+import GameLogic
+
+-- Core Haskell modules, mostly data types.
 import Data.Text as T
 import Data.List as L
 import Data.Maybe as M
-import System.Random as R
-import Control.Concurrent.MVar as V
-import Control.Monad as MD
 import Data.Monoid
-import Blaze.ByteString.Builder.Char.Utf8 (fromString)
-import Network.Wai.EventSource (ServerEvent (..), eventSourceApp)
+import System.Random as Random
+import Control.Monad
+
+-- Monads for reading / setting memory state.
+import Control.Concurrent.MVar
+
+-- Yesod (web framework) modules.
+import Yesod
+import Yesod.Static
 import Text.Hamlet (hamletFile)
 import Text.Lucius (luciusFile)
 
-replace :: Int -> a -> [a] -> [a]
-replace index element list = (L.take index list) ++ [element] ++ (L.drop (index+1) list)
-
-findList :: (Eq a) => [a] -> [a] -> Bool
-findList sequence list = sequence `elem` L.concat (L.map L.inits (L.tails list))
-
-type Matrix a = [[a]]
-
-replace' :: Int -> Int -> a -> Matrix a -> Matrix a
-replace' x y element matrix = Tfoo.replace x (Tfoo.replace y element (matrix !! x)) matrix
-
-diagonal :: Matrix a -> [a]
-diagonal m = L.zipWith (!!) m [0..]
-
-diagonals :: Matrix a -> [[a]]
-diagonals matrix =
-  let tails' = L.tail . L.tails
-      diagonalsNW m = L.map diagonal ([m] ++ tails' m ++ tails' (L.transpose m))
-  in diagonalsNW matrix ++ diagonalsNW (L.map L.reverse matrix)
-
-data Mark = O | X deriving (Eq, Show)
-type Cell = Maybe Mark
-
-type Pattern   = [Cell]
-type Board     = Matrix Cell
-
-generateBoard :: Int -> Board
-generateBoard size = [ [Nothing | x <- [1..size]] | y <- [1..size]]
-
-patterns :: Board -> [Pattern]
-patterns board = board ++ (L.transpose board) ++ (diagonals board)
-
-winner :: Board -> Maybe Mark
-winner board
-  | L.any (findList [Just O, Just O, Just O, Just O, Just O]) (patterns board) = Just O
-  | L.any (findList [Just X, Just X, Just X, Just X, Just X]) (patterns board) = Just X
-  | otherwise = Nothing
+-- Modules for creating and broadcasting to event source channel.
+import Network.Wai.EventSource (ServerEvent (..), eventSourceApp)
+import Control.Concurrent.Chan
+import Blaze.ByteString.Builder.Char.Utf8 (fromString)
 
 type Player = String
 data Game = Game {
@@ -66,16 +42,8 @@ setPlayer :: Game -> Mark -> Player -> Game
 setPlayer game O playerId = game { playerO = Just playerId }
 setPlayer game X playerId = game { playerX = Just playerId }
 
-getCell :: Board -> Int -> Int -> Cell
-getCell board x y = (((board) !! x) !! y)
-
 whoseTurn :: Game -> Maybe Player
 whoseTurn g = if nextMark (board g) == O then playerO g else playerX g
-
-nextMark :: Board -> Mark
-nextMark board = if (count X) <= (count O) then X else O where
-  count mark = L.length $ L.filter (Just mark == ) $ L.concat board
-
 
 data Tfoo = Tfoo {
     seed       :: Int,
@@ -226,7 +194,7 @@ postMarkR id x y = do
     -- The target cell has to be empty.
     require $ (getCell (board game) x y) == Nothing
     -- User has to be authorized to make this move
-    require $ fromMaybe False (MD.liftM2 elem whoseTurn' userAuthorizations)
+    require $ fromMaybe False (liftM2 elem whoseTurn' userAuthorizations)
     -- The game has to be still in progress
     require $ (winner board') == Nothing
 
@@ -243,18 +211,6 @@ postMarkR id x y = do
           else return ()
         elem' x y = (elem . L.words . T.unpack)
         userAuthorizations' = L.words . T.unpack
-
-broadcastGameState :: Int -> Handler ()
-broadcastGameState id = do
-    game  <- getGame id
-    board' <- return $ board game
-    maybe (notifyNextPlayer board') announceWinner (winner board')
-  where
-    notifyNextPlayer board =
-      broadcast id "alert" [("content", (show $ nextMark board)++"'s turn")]
-    announceWinner mark =
-      broadcast id "alert" [("winner", "Game won: "++(show mark))]
-
 
 postPlayerOR :: Int -> Handler RepHtml
 postPlayerOR id = do
@@ -297,6 +253,17 @@ broadcast gameId messageId pairs = do
         stringifyPair p = "\""++(fst p) ++ "\": \"" ++ (snd p) ++ "\""
         serverEvent = ServerEvent Nothing Nothing
 
+broadcastGameState :: Int -> Handler ()
+broadcastGameState id = do
+    game  <- getGame id
+    board' <- return $ board game
+    maybe (notifyNextPlayer board') announceWinner (winner board')
+  where
+    notifyNextPlayer board =
+      broadcast id "alert" [("content", (show $ nextMark board)++"'s turn")]
+    announceWinner mark =
+      broadcast id "alert" [("winner", "Game won: "++(show mark))]
+
 joinGame :: Int -> Mark -> Handler ()
 joinGame id mark =
   do
@@ -332,7 +299,7 @@ updateGame :: Int -> Game -> Handler ()
 updateGame id game = do
   tfoo <- getYesod
   liftIO $ modifyMVar (games tfoo) (\games ->
-      return (replace id (return game) games, games)
+      return (Helpers.replace id (return game) games, games)
     )
   return ()
 
@@ -353,6 +320,6 @@ main :: IO ()
 main = do
   nextGameId <- newMVar 1
   games <- newMVar gameStream
-  seedP <- liftIO $ getStdGen >>= (\x -> return $ next x)
+  seedP <- liftIO $ Random.getStdGen >>= (\x -> return $ next x)
   static' <- static "static"
   warpDebug 3100 (Tfoo (fst seedP) games nextGameId static')
