@@ -73,15 +73,12 @@ getHomeR = do
     [whamlet|
       <div .landing-page>
         <h1> TFOO!
-        <h2> Take Five online, obviously.
+        <h2> That's Five-in-a-Row online, obviously.
         <div>
-          An implementation of Take Five game (wikipedia) that utilizes Haskell,
-          Yesod (Haskell web framework) and EventSource (http://caniuse.com/eventsource).
+          An implementation of Five in a Row game (<a href=http://en.wikipedia.org/wiki/Gomoku>wikipedia</a>) that utilizes <a href=http://www.haskell.org/haskellwiki/Haskell>Haskell</a>, <a href=http://www.yesodweb.com/>Yesod</a> (Haskell web framework) and <a href=http://caniuse.com/eventsource>EventSource</a>.
         <div>
           <form method=post action=@{GamesR}>
             <input type=submit value="START GAME">
-        <div> Read a blog post:
-        <div> View source on GitHub:
     |]
 
 postGamesR :: Handler RepHtml
@@ -141,45 +138,46 @@ getGameR id = let
       addStylesheet $ StaticR $ StaticRoute ["styles", "tfoo.css"] []
       addScript $ StaticR $ StaticRoute ["scripts","jquery-1.7.1.min.js"] []
       [whamlet|
-        <div .players>
-          <div #player_x>
-            <div .player-description>
-              Cross:
-            $maybe player <- (playerX game)
-              <div #joined >
-                Joined
-                $maybe you <- maybePlayers
-                  $if elem player (L.words $ T.unpack you)
-                    (You)
-                  $else
-            $nothing
-              <div .player-join #no_player_X >
-                <form method=post action=@{PlayerXR id}>
-                  <input value="Join as X" type=submit>
-          <div #player_o>
-            <div .player-description>
-              Circle:
-            $maybe player <- (playerO game)
-              <div #joined >
-                Joined
-                $maybe you <- maybePlayers
-                  $if elem player (L.words $ T.unpack you)
-                    (You)
-                  $else
-            $nothing
-              <div .player-join #no_player_O >
-                <form method=post action=@{PlayerOR id}>
-                  <input value="Join as O" type=submit>
-        <div #messages>
-        <table #board>
-          $forall column <- columns
-            <tr>
-              $forall row <- rows
-                <td>
-                  $maybe mark <- getCell (board game) row column
-                    <div #cell_#{row}_#{column} .mark-#{show mark} data-x=#{row} data-y=#{column}>
-                  $nothing
-                    <div #cell_#{row}_#{column} ."mark-new" data-x=#{row} data-y=#{column}>
+        <div .game-container>
+          <div .players>
+            <div #player_x>
+              <div .player-description>
+                Cross:
+              $maybe player <- (playerX game)
+                <div #joined >
+                  Joined
+                  $maybe you <- maybePlayers
+                    $if elem player (L.words $ T.unpack you)
+                      (You)
+                    $else
+              $nothing
+                <div .player-join #no_player_X >
+                  <form method=post action=@{PlayerXR id}>
+                    <input value="Join as X" type=submit>
+            <div #player_o>
+              <div .player-description>
+                Circle:
+              $maybe player <- (playerO game)
+                <div #joined >
+                  Joined
+                  $maybe you <- maybePlayers
+                    $if elem player (L.words $ T.unpack you)
+                      (You)
+                    $else
+              $nothing
+                <div .player-join #no_player_O >
+                  <form method=post action=@{PlayerOR id}>
+                    <input value="Join as O" type=submit>
+          <div #messages>
+          <table #board>
+            $forall column <- columns
+              <tr>
+                $forall row <- rows
+                  <td>
+                    $maybe mark <- getCell (board game) row column
+                      <div #cell_#{row}_#{column} .mark-#{show mark} data-x=#{row} data-y=#{column}>
+                    $nothing
+                      <div #cell_#{row}_#{column} ."mark-new" data-x=#{row} data-y=#{column}>
       |]
 
 postMarkR :: Int -> Int -> Int -> Handler ()
@@ -238,11 +236,11 @@ postPlayerXR id = do
 getChannelR :: Int -> Handler ()
 getChannelR id = do
   game <- getGame id
-  chan <- liftIO $ dupChan $ channel game
-  req  <- waiRequest
-  res  <- lift $ eventSourceApp chan req
+  channel <- liftIO $ dupChan $ channel game
+  request  <- waiRequest
+  response  <- lift $ eventSourceApp channel request
   updateGame id game
-  sendWaiResponse res
+  sendWaiResponse response
 
 broadcast :: Int -> String -> [(String, String)] -> Handler ()
 broadcast gameId messageId pairs = do
