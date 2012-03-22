@@ -71,11 +71,11 @@ getHomeR = do
   defaultLayout $ do
     addStylesheet $ StaticR $ StaticRoute ["styles", "tfoo.css"] []
     [whamlet|
+      <h1 .headline> <a href=@{HomeR}>tfoo</a>
       <div .landing-page>
-        <h1> TFOO!
         <h2> That's Five-in-a-Row online, obviously.
-        <div>
-          An implementation of Five in a Row game (<a href=http://en.wikipedia.org/wiki/Gomoku>wikipedia</a>) that utilizes <a href=http://www.haskell.org/haskellwiki/Haskell>Haskell</a>, <a href=http://www.yesodweb.com/>Yesod</a> (Haskell web framework) and <a href=http://caniuse.com/eventsource>EventSource</a>.
+        <div .tfoo-description>
+          An implementation of <a target=_blank href=http://en.wikipedia.org/wiki/Gomoku>Five in a Row</a> game that utilizes <a target=_blank .tech-link href=http://www.haskell.org/haskellwiki/Haskell>Haskell</a> programming language, <a target=_blank .tech-link href=http://www.yesodweb.com/>Yesod</a> web framework and <a target=_blank .tech-link href=http://caniuse.com/eventsource>EventSource</a>.
         <div>
           <form method=post action=@{GamesR}>
             <input type=submit value="START GAME">
@@ -111,10 +111,9 @@ getGameR id = let
         $(document).ready(function() {
           var src = new EventSource("@{ChannelR id}");
           src.onmessage = function(input) {
-            console.log(input.data);
             var message = JSON.parse(input.data);
             if (message.id == "player-new"){
-              $("#no_player_"+message.side).replaceWith("<div>Joined</div>");
+              $("#no_player_"+message.side).replaceWith("<div id='joined'>Joined</div>");
             } else if (message.id == "mark-new") {
               var markId = "#cell_"+message.x+"_"+message.y;
               $(markId).replaceWith(
@@ -138,6 +137,7 @@ getGameR id = let
       addStylesheet $ StaticR $ StaticRoute ["styles", "tfoo.css"] []
       addScript $ StaticR $ StaticRoute ["scripts","jquery-1.7.1.min.js"] []
       [whamlet|
+        <h1 .game-headline> <a href=@{HomeR}>tfoo</a>
         <div .game-container>
           <div .players>
             <div #player_x>
@@ -148,7 +148,7 @@ getGameR id = let
                   Joined
                   $maybe you <- maybePlayers
                     $if elem player (L.words $ T.unpack you)
-                      (You)
+                      \ (You)
                     $else
               $nothing
                 <div .player-join #no_player_X >
@@ -162,7 +162,7 @@ getGameR id = let
                   Joined
                   $maybe you <- maybePlayers
                     $if elem player (L.words $ T.unpack you)
-                      (You)
+                      \ (You)
                     $else
               $nothing
                 <div .player-join #no_player_O >
@@ -217,6 +217,7 @@ postPlayerOR id = do
     then do
       joinGame id O
       broadcast id "player-new" [("side", "O")]
+      broadcast id "alert" [("content", "Player joined: Circle")]
       return ()
     else return ()
   redirect $ GameR id
@@ -224,11 +225,11 @@ postPlayerOR id = do
 postPlayerXR :: Int -> Handler RepHtml
 postPlayerXR id = do
   game <- getGame id
-  broadcast id "debug" [("message", "Invoked postPlayerXR")]
   if (playerX game) == Nothing
     then do
       joinGame id X
       broadcast id "player-new" [("side", "X")]
+      broadcast id "alert" [("content", "Player joined: Cross")]
       return ()
     else return ()
   redirect $ GameR id
@@ -260,7 +261,7 @@ broadcastGameState id = do
     notifyNextPlayer board =
       broadcast id "alert" [("content", (show $ nextMark board)++"'s turn")]
     announceWinner mark =
-      broadcast id "alert" [("winner", "Game won: "++(show mark))]
+      broadcast id "alert" [("content", "Game won: "++(show mark))]
 
 joinGame :: Int -> Mark -> Handler ()
 joinGame id mark =
