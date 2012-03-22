@@ -90,11 +90,11 @@ postGamesR = do
     id   <- liftIO $ newGameId tfoo
     redirect $ GameR id
   where -- Increment Tfoo's Game counter and return id of the next new Game.
-        newGameId :: Tfoo -> IO Int
-        newGameId tfoo = modifyMVar (nextGameId tfoo) incrementMVar
+    newGameId :: Tfoo -> IO Int
+    newGameId tfoo = modifyMVar (nextGameId tfoo) incrementMVar
 
-        incrementMVar :: Int -> IO (Int, Int)
-        incrementMVar value = return (value+1, value)
+    incrementMVar :: Int -> IO (Int, Int)
+    incrementMVar value = return (value+1, value)
 
 getGameR :: Int -> Handler RepHtml
 getGameR id = let
