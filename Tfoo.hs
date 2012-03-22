@@ -30,6 +30,9 @@ import Network.Wai.EventSource (ServerEvent (..), eventSourceApp)
 import Control.Concurrent.Chan
 import Blaze.ByteString.Builder.Char.Utf8 (fromString)
 
+-- Reading commandline parameters
+import System.Environment (getArgs)
+
 type Player = String
 data Game = Game {
   playerX :: Maybe Player,
@@ -318,7 +321,13 @@ gameStream = repeat createGame
 main :: IO ()
 main = do
   nextGameId <- newMVar 1
-  games <- newMVar gameStream
-  seedP <- liftIO $ Random.getStdGen >>= (\x -> return $ next x)
+  games   <- newMVar gameStream
+  seedP   <- liftIO $ Random.getStdGen >>= (\x -> return $ next x)
   static' <- static "static"
-  warpDebug 3100 (Tfoo (fst seedP) games nextGameId static')
+  args    <- getArgs
+  warpDebug (getPort args) (Tfoo (fst seedP) games nextGameId static')
+
+getPort :: [String] -> Int
+getPort args = extractPort $ "-p" `elemIndex` args
+  where extractPort (Just index) = read $ args !! (index+1)
+        extractPort (Nothing) = 3100
