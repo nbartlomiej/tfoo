@@ -1,0 +1,9 @@
+<h1 .headline> <a href=@{HomeR}>tfoo</a>
+<div .landing-page>
+  <h2> That's Five-in-a-Row online, obviously.
+  <div .tfoo-description>
+    An implementation of <a target=_blank href=http://en.wikipedia.org/wiki/Gomoku>Five in a Row</a> game that utilizes <a target=_blank .tech-link href=http://www.haskell.org/haskellwiki/Haskell>Haskell</a> programming language, <a target=_blank .tech-link href=http://www.yesodweb.com/>Yesod</a> web framework and <a target=_blank .tech-link href=http://caniuse.com/eventsource>EventSource</a>.
+  <div>
+    <form method=post action=@{GamesR}>
+      <input type=submit value="START GAME">
+

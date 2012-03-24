@@ -66,23 +66,18 @@ mkYesod "Tfoo" [parseRoutes|
 /static                     StaticR Static tfooStatic
 |]
 
-instance Yesod Tfoo
+instance Yesod Tfoo where
+  defaultLayout widget = do
+    pageContent <- widgetToPageContent $ do
+      widget
+      addStylesheet $ StaticR $ StaticRoute ["styles", "tfoo.css"] []
+      addScript $ StaticR $ StaticRoute ["scripts","jquery-1.7.1.min.js"] []
+    hamletToRepHtml $(hamletFile "templates/layout.hamlet")
 
 getHomeR :: Handler RepHtml
 getHomeR = do
   tfoo <- getYesod
-  defaultLayout $ do
-    addStylesheet $ StaticR $ StaticRoute ["styles", "tfoo.css"] []
-    [whamlet|
-      <h1 .headline> <a href=@{HomeR}>tfoo</a>
-      <div .landing-page>
-        <h2> That's Five-in-a-Row online, obviously.
-        <div .tfoo-description>
-          An implementation of <a target=_blank href=http://en.wikipedia.org/wiki/Gomoku>Five in a Row</a> game that utilizes <a target=_blank .tech-link href=http://www.haskell.org/haskellwiki/Haskell>Haskell</a> programming language, <a target=_blank .tech-link href=http://www.yesodweb.com/>Yesod</a> web framework and <a target=_blank .tech-link href=http://caniuse.com/eventsource>EventSource</a>.
-        <div>
-          <form method=post action=@{GamesR}>
-            <input type=submit value="START GAME">
-    |]
+  defaultLayout $ addHamlet $(hamletFile "templates/index.hamlet")
 
 postGamesR :: Handler RepHtml
 postGamesR = do
@@ -137,51 +132,7 @@ getGameR id = let
           });
         });
       |]
-      addStylesheet $ StaticR $ StaticRoute ["styles", "tfoo.css"] []
-      addScript $ StaticR $ StaticRoute ["scripts","jquery-1.7.1.min.js"] []
-      [whamlet|
-        <h1 .game-headline> <a href=@{HomeR}>tfoo</a>
-        <div .game-container>
-          <div .players>
-            <div #player_x>
-              <div .player-description>
-                Cross:
-              $maybe player <- (playerX game)
-                <div #joined >
-                  Joined
-                  $maybe you <- maybePlayers
-                    $if elem player (L.words $ T.unpack you)
-                      \ (You)
-                    $else
-              $nothing
-                <div .player-join #no_player_X >
-                  <form method=post action=@{PlayerXR id}>
-                    <input value="Join as X" type=submit>
-            <div #player_o>
-              <div .player-description>
-                Circle:
-              $maybe player <- (playerO game)
-                <div #joined >
-                  Joined
-                  $maybe you <- maybePlayers
-                    $if elem player (L.words $ T.unpack you)
-                      \ (You)
-                    $else
-              $nothing
-                <div .player-join #no_player_O >
-                  <form method=post action=@{PlayerOR id}>
-                    <input value="Join as O" type=submit>
-          <div #messages>
-          <table #board>
-            $forall column <- columns
-              <tr>
-                $forall row <- rows
-                  <td>
-                    $maybe mark <- getCell (board game) row column
-                      <div #cell_#{row}_#{column} .mark-#{show mark} data-x=#{row} data-y=#{column}>
-                    $nothing
-                      <div #cell_#{row}_#{column} ."mark-new" data-x=#{row} data-y=#{column}>
-      |]
+      addHamlet $(hamletFile "templates/game.hamlet")
 
 postMarkR :: Int -> Int -> Int -> Handler ()
 postMarkR id x y = do
