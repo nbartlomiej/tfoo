@@ -32,6 +32,8 @@
             <button class="wiggle join-button" type=submit>
               Join as O
   <div #messages>
+    <div .message>
+      #{ gameState game }
   <table #board>
     $forall column <- columns
       <tr>

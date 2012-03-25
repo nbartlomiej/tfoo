@@ -153,12 +153,13 @@ postMarkR id x y = do
     require $ (winner board') == Nothing
 
     updateGame id $ game {board = replace' x y (Just $ nextMark board') board'}
+    game' <- getGame id
 
     broadcast id "mark-new" [
         ("x", show x), ("y", show y), ("mark", show (nextMark board'))
       ]
 
-    broadcastGameState id
+    broadcast id "alert" [("content", gameState game')]
 
   where require result = if result == False
           then permissionDenied "Permission Denied"
@@ -208,16 +209,12 @@ broadcast gameId messageId pairs = do
         stringifyPair p = "\""++(fst p) ++ "\": \"" ++ (snd p) ++ "\""
         serverEvent = ServerEvent Nothing Nothing
 
-broadcastGameState :: Int -> Handler ()
-broadcastGameState id = do
-    game  <- getGame id
-    board' <- return $ board game
-    maybe (notifyNextPlayer board') announceWinner (winner board')
-  where
-    notifyNextPlayer board =
-      broadcast id "alert" [("content", (show $ nextMark board)++"'s turn")]
-    announceWinner mark =
-      broadcast id "alert" [("content", "Game won: "++(show mark))]
+gameState :: Game -> String
+gameState game =
+  let board' = board game
+  in  maybe (nextMove board') announceWinner (winner board')
+  where nextMove board = (show $ nextMark board) ++ "'s turn"
+        announceWinner mark = "Game won: " ++ (show mark)
 
 joinGame :: Int -> Mark -> Handler ()
 joinGame id mark =
