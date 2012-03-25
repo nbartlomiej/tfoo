@@ -1,7 +1,7 @@
-module GameLogic where
+module Tfoo.Board where
 
 import Data.List
-import Helpers
+import Tfoo.Helpers
 
 data Mark = O | X deriving (Eq, Show)
 type Cell = Maybe Mark

@@ -1,4 +1,4 @@
-module Helpers where
+module Tfoo.Helpers where
 
 import Data.List
 
