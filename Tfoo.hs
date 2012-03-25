@@ -72,12 +72,12 @@ instance Yesod Tfoo where
       widget
       addStylesheet $ StaticR $ StaticRoute ["styles", "tfoo.css"] []
       addScript $ StaticR $ StaticRoute ["scripts","jquery-1.7.1.min.js"] []
-    hamletToRepHtml $(hamletFile "templates/layout.hamlet")
+    hamletToRepHtml $(hamletFile "Asset/Template/layout.hamlet")
 
 getHomeR :: Handler RepHtml
 getHomeR = do
   tfoo <- getYesod
-  defaultLayout $ addHamlet $(hamletFile "templates/index.hamlet")
+  defaultLayout $ addHamlet $(hamletFile "Asset/Template/index.hamlet")
 
 postGamesR :: Handler RepHtml
 postGamesR = do
@@ -132,7 +132,7 @@ getGameR id = let
           });
         });
       |]
-      addHamlet $(hamletFile "templates/game.hamlet")
+      addHamlet $(hamletFile "Asset/Template/game.hamlet")
 
 postMarkR :: Int -> Int -> Int -> Handler ()
 postMarkR id x y = do
