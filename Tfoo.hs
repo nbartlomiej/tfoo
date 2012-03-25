@@ -72,6 +72,7 @@ instance Yesod Tfoo where
       widget
       addStylesheet $ StaticR $ StaticRoute ["styles", "tfoo.css"] []
       addScript $ StaticR $ StaticRoute ["scripts","jquery-1.7.1.min.js"] []
+      addScript $ StaticR $ StaticRoute ["scripts","jquery.wiggle.js"] []
     hamletToRepHtml $(hamletFile "Asset/Template/layout.hamlet")
 
 getHomeR :: Handler RepHtml
@@ -107,6 +108,7 @@ getGameR id = let
           xhr.send(null);
         };
         $(document).ready(function() {
+          $('.wiggle').wiggle();
           var src = new EventSource("@{ChannelR id}");
           src.onmessage = function(input) {
             var message = JSON.parse(input.data);

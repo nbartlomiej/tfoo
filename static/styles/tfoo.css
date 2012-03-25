@@ -14,6 +14,52 @@ body {
   filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#a9e4f7', endColorstr='#0fb4e7',GradientType=1 ); /* IE6-9 */
 }
 
+button , input[type="submit"] , .buttonify {
+  text-decoration: none;
+  cursor: pointer;
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 14px;
+	color: #050505;
+	padding: 9px 17px;
+	background: -moz-linear-gradient(
+		top,
+		#ffffff 0%,
+		#ebebeb 50%,
+		#dbdbdb 50%,
+		#b5b5b5);
+	background: -webkit-gradient(
+		linear, left top, left bottom, 
+		from(#ffffff),
+		color-stop(0.50, #ebebeb),
+		color-stop(0.50, #dbdbdb),
+		to(#b5b5b5));
+	border: 1px solid #949494;
+	-moz-box-shadow:
+    0px 0px 1px 0px rgba(15, 64, 153, 0.4),
+		inset 0px 0px 2px rgba(255,255,255,1);
+	-webkit-box-shadow:
+    0px 0px 1px 0px rgba(15, 64, 153, 0.4),
+		inset 0px 0px 2px rgba(255,255,255,1);
+	box-shadow:
+    0px 0px 1px 0px rgba(15, 64, 153, 0.4),
+		inset 0px 0px 2px rgba(255,255,255,1);
+	text-shadow:
+		0px -1px 0px rgba(000,000,000,0.2),
+		0px 1px 0px rgba(255,255,255,1);
+}
+
+button:hover , input[type="submit"]:hover , .buttonify:hover {
+	-moz-box-shadow:
+    0px 0px 5px 0px rgba(15, 64, 153, 0.6),
+		inset 0px 0px 2px rgba(255,255,255,1);
+	-webkit-box-shadow:
+    0px 0px 5px 0px rgba(15, 64, 153, 0.6),
+		inset 0px 0px 2px rgba(255,255,255,1);
+	box-shadow:
+    0px 0px 5px 0px rgba(15, 64, 153, 0.6),
+		inset 0px 0px 2px rgba(255,255,255,1);
+}
+
 .headline , .game-headline {
   width: 540px;
   margin: 40px auto -25px auto;
@@ -116,7 +162,7 @@ body {
 
 .players {
   width: 100%;
-  overflow: auto;
+  overflow: visible;
   height: 40px;
 }
 
@@ -132,9 +178,20 @@ body {
 .player-description {
   float: left;
 }
-.player-join {
-  margin-top: -2px;
+
+.join-button {
+  margin-top: -17px;
+  padding: 8px 9px !important;
+  height: 50px;
+  width: 50px;
 }
+
+.join-button:hover {
+  -webkit-transform: rotate(0deg) scale(1.1) !important;
+     -moz-transform: rotate(0deg) scale(1.1) !important;
+          transform: rotate(0deg) scale(1.1) !important;
+}
+
 .player-join , #joined {
   float: left;
   margin-left: 10px;
@@ -193,36 +250,3 @@ body {
   filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#c9de96', endColorstr='#398235',GradientType=1 ); /* IE6-9 fallback on horizontal gradient */
 }
 
-input[type="submit"] , .buttonify {
-  text-decoration: none;
-  cursor: pointer;
-	font-family: Arial, Helvetica, sans-serif;
-	font-size: 14px;
-	color: #050505;
-	padding: 9px 17px;
-	background: -moz-linear-gradient(
-		top,
-		#ffffff 0%,
-		#ebebeb 50%,
-		#dbdbdb 50%,
-		#b5b5b5);
-	background: -webkit-gradient(
-		linear, left top, left bottom, 
-		from(#ffffff),
-		color-stop(0.50, #ebebeb),
-		color-stop(0.50, #dbdbdb),
-		to(#b5b5b5));
-	border: 1px solid #949494;
-	-moz-box-shadow:
-    0px 0px 1px 0px rgba(15, 64, 153, 0.4),
-		inset 0px 0px 2px rgba(255,255,255,1);
-	-webkit-box-shadow:
-    0px 0px 1px 0px rgba(15, 64, 153, 0.4),
-		inset 0px 0px 2px rgba(255,255,255,1);
-	box-shadow:
-    0px 0px 1px 0px rgba(15, 64, 153, 0.4),
-		inset 0px 0px 2px rgba(255,255,255,1);
-	text-shadow:
-		0px -1px 0px rgba(000,000,000,0.2),
-		0px 1px 0px rgba(255,255,255,1);
-}

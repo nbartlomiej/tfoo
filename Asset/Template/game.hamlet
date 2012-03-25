@@ -12,9 +12,10 @@
               \ (You)
             $else
       $nothing
-        <div .player-join #no_player_X >
+        <div .player-join #player_join_X >
           <form method=post action=@{PlayerXR id}>
-            <input value="Join as X" type=submit>
+            <button class="wiggle join-button" type=submit>
+              Join as X
     <div #player_o>
       <div .player-description>
         Circle:
@@ -26,9 +27,10 @@
               \ (You)
             $else
       $nothing
-        <div .player-join #no_player_O >
+        <div .player-join #player_join_O >
           <form method=post action=@{PlayerOR id}>
-            <input value="Join as O" type=submit>
+            <button class="wiggle join-button" type=submit>
+              Join as O
   <div #messages>
   <table #board>
     $forall column <- columns
