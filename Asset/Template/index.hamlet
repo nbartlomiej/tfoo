@@ -2,8 +2,17 @@
 <div .landing-page>
   <h2> That's Five-in-a-Row online, obviously.
   <div .tfoo-description>
-    An implementation of <a target=_blank href=http://en.wikipedia.org/wiki/Gomoku>Five in a Row</a> game that utilizes <a target=_blank .tech-link href=http://www.haskell.org/haskellwiki/Haskell>Haskell</a> programming language, <a target=_blank .tech-link href=http://www.yesodweb.com/>Yesod</a> web framework and <a target=_blank .tech-link href=http://caniuse.com/eventsource>EventSource</a>.
+    An implementation of <a target=_blank href=http://en.wikipedia.org/wiki/Gomoku>Five in a Row</a> game that utilizes <a target=_blank .tech-link href=http://www.haskell.org/haskellwiki/Haskell>Haskell</a> programming language, <a target=_blank .tech-link href=http://www.yesodweb.com/>Yesod</a> web framework and <a target=_blank .tech-link href=http://caniuse.com/eventsource>Server-sent Events</a>.
   <div>
     <form method=post action=@{GamesR}>
       <input type=submit value="START GAME">
+
+  <div #social-media>
+    <div .left>
+      <a href="https://twitter.com/share" class="twitter-share-button" data-related="nbartlomiej">Tweet</a>
+      <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+    <div .right>
+      <span .author>
+        by: #
+        <a href="http://twitter.com/nbartlomiej">@nbartlomiej
 

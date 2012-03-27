@@ -1,7 +1,7 @@
 $doctype 5
   <html>
     <head>
-      <title>#{pageTitle pageContent}
+      <title> Tfoo - Haskell online game with server-sent events
       <meta charset=utf-8>
       <script type="text/javascript">
         var _gaq = _gaq || [];

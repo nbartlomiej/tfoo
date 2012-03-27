@@ -2,6 +2,7 @@ html, body {
   margin: 0;
   padding: 0;
 }
+
 body {
   font-family: sans-serif;
   background: #a9e4f7; /* Old browsers */
@@ -12,6 +13,10 @@ body {
   background: -ms-linear-gradient(left, #a9e4f7 0%,#0fb4e7 100%); /* IE10+ */
   background: linear-gradient(left, #a9e4f7 0%,#0fb4e7 100%); /* W3C */
   filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#a9e4f7', endColorstr='#0fb4e7',GradientType=1 ); /* IE6-9 */
+}
+
+a {
+  color: #009;
 }
 
 button , input[type="submit"] , .buttonify {
@@ -120,6 +125,40 @@ button:hover , input[type="submit"]:hover , .buttonify:hover {
   text-align: center;
   margin: 1em 0;
 }
+
+#social-media {
+  width: 100%;
+  overflow: auto;
+  margin: -40px 0px 0px 0px;
+  height: 40px;
+}
+
+#social-media .left , #social-media .right {
+}
+
+
+#social-media .left {
+  margin: 0px;
+  float: left;
+}
+
+#social-media .right {
+  margin: 0px;
+  float: right;
+  text-align: right;
+  width: 200px;
+}
+
+.author {
+}
+
+.author a {
+  text-decoration: none;
+  color: #37a;
+}
+
+.author a:hover { color: #666; }
+
 
 #messages {
   height: 26px;
