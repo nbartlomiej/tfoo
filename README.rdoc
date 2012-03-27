@@ -7,7 +7,7 @@ An implementation of Five in a Row game (http://en.wikipedia.org/wiki/Gomoku) do
 
 * Yesod book: http://www.yesodweb.com/book
 * Deploying Yesod Apps to Heroku: https://github.com/yesodweb/yesod/wiki/Deploying-Yesod-Apps-to-Heroku
-* Blog post about this project is in the works. If you'd like to know more on a specific topic - drop me a line and I will try to write about it.
+* Blog post about this project is in the works. If you'd like to know more on a specific topic - drop me a line.
 
 ==License
 
