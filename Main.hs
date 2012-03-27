@@ -24,6 +24,7 @@ import Yesod
 import Yesod.Static
 import Text.Hamlet (hamletFile)
 import Text.Lucius (luciusFile)
+import Text.Julius (juliusFile)
 
 -- Modules for creating and broadcasting to event source channel.
 import Network.Wai.EventSource (ServerEvent (..), eventSourceApp)
@@ -101,39 +102,7 @@ getGameR id = let
     maybePlayers <- lookupSession "players"
     tfoo <- getYesod
     defaultLayout $ do
-      toWidgetHead [julius|
-        var post = function(url){
-          var xhr = new XMLHttpRequest();
-          xhr.open("POST", url);
-          xhr.send(null);
-        };
-        $(document).ready(function() {
-          $('.wiggle').wiggle();
-          var src = new EventSource("@{ChannelR id}");
-          src.onmessage = function(input) {
-            var message = JSON.parse(input.data);
-            if (message.id == "player-new"){
-              $("#no_player_"+message.side).replaceWith("<div id='joined'>Joined</div>");
-            } else if (message.id == "mark-new") {
-              var markId = "#cell_"+message.x+"_"+message.y;
-              $(markId).replaceWith(
-                "<div id='"+markId+"' class='mark-"+message.mark+"'></div>"
-              );
-            } else if (message.id == "alert") {
-              $("#messages").prepend(
-                "<div class='message'>"+message.content+"</div>"
-              );
-            }
-          };
-          $('.mark-new').each(function(index, element){
-            $(element).click(function(){
-              var x = $(element).attr('data-x');
-              var y = $(element).attr('data-y');
-              post('#{show id}/mark/' + x + '/' + y);
-            });
-          });
-        });
-      |]
+      addJulius $(juliusFile "Asset/Script/game.julius")
       addHamlet $(hamletFile "Asset/Template/game.hamlet")
 
 postMarkR :: Int -> Int -> Int -> Handler ()
