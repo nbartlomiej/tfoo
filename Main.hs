@@ -53,12 +53,12 @@ instance Yesod Tfoo where
       addStylesheet $ StaticR $ StaticRoute ["styles", "tfoo.css"] []
       addScript $ StaticR $ StaticRoute ["scripts","jquery-1.7.1.min.js"] []
       addScript $ StaticR $ StaticRoute ["scripts","jquery.wiggle.js"] []
-    hamletToRepHtml $(hamletFile "Assets/Templates/layout.hamlet")
+    hamletToRepHtml $(hamletFile "Tfoo/Assets/Templates/layout.hamlet")
 
 getHomeR :: Handler RepHtml
 getHomeR = do
   tfoo <- getYesod
-  defaultLayout $ addHamlet $(hamletFile "Assets/Templates/index.hamlet")
+  defaultLayout $ addHamlet $(hamletFile "Tfoo/Assets/Templates/index.hamlet")
 
 postGamesR :: Handler RepHtml
 postGamesR = do
@@ -81,8 +81,8 @@ getGameR id = let
     maybePlayers <- lookupSession "players"
     tfoo <- getYesod
     defaultLayout $ do
-      addJulius $(juliusFile "Assets/Scripts/game.julius")
-      addHamlet $(hamletFile "Assets/Templates/game.hamlet")
+      addJulius $(juliusFile "Tfoo/Assets/Scripts/game.julius")
+      addHamlet $(hamletFile "Tfoo/Assets/Templates/game.hamlet")
 
 postMarkR :: Int -> Int -> Int -> Handler ()
 postMarkR id x y = do
