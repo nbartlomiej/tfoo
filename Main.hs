@@ -28,13 +28,6 @@ import Blaze.ByteString.Builder.Char.Utf8 (fromString)
 
 import System.Environment (getArgs)
 
-setPlayer :: Game -> Mark -> Player -> Game
-setPlayer game O playerId = game { playerO = Just playerId }
-setPlayer game X playerId = game { playerX = Just playerId }
-
-whoseTurn :: Game -> Maybe Player
-whoseTurn g = if nextMark (board g) == O then playerO g else playerX g
-
 mkYesod "Tfoo" [parseRoutes|
 /                           HomeR GET
 /games                      GamesR POST
@@ -156,13 +149,6 @@ broadcast gameId messageId pairs = do
         stringifiedPairs pairs = L.intercalate ", " $ L.map stringifyPair pairs
         stringifyPair p = "\""++(fst p) ++ "\": \"" ++ (snd p) ++ "\""
         serverEvent = ServerEvent Nothing Nothing
-
-gameState :: Game -> String
-gameState game =
-  let board' = board game
-  in  maybe (nextMove board') announceWinner (winner board')
-  where nextMove board = (show $ nextMark board) ++ "'s turn"
-        announceWinner mark = "Game won: " ++ (show mark)
 
 joinGame :: Int -> Mark -> Handler ()
 joinGame id mark =
