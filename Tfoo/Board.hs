@@ -1,7 +1,8 @@
 module Tfoo.Board where
 
+import Tfoo.Matrix
+
 import Data.List
-import Tfoo.Helpers
 
 data Mark = O | X deriving (Eq, Show)
 type Cell = Maybe Mark

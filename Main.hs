@@ -2,13 +2,11 @@
              TemplateHaskell, OverloadedStrings #-}
 module Main where
 
--- General functions that help operating on game data.
-import Tfoo.Helpers
-
--- Specific functions implementing Take Five game logic.
+import Tfoo.Foundation
+import Tfoo.Matrix
 import Tfoo.Board
+import Tfoo.Game
 
--- Core Haskell modules, mostly data types.
 import Data.Text as T
 import Data.List as L
 import Data.Maybe as M
@@ -16,31 +14,19 @@ import Data.Monoid
 import System.Random as Random
 import Control.Monad
 
--- Monads for reading / setting memory state.
 import Control.Concurrent.MVar
 
--- Yesod (web framework) modules.
 import Yesod
 import Yesod.Static
 import Text.Hamlet (hamletFile)
 import Text.Lucius (luciusFile)
 import Text.Julius (juliusFile)
 
--- Modules for creating and broadcasting to event source channel.
 import Network.Wai.EventSource (ServerEvent (..), eventSourceApp)
 import Control.Concurrent.Chan
 import Blaze.ByteString.Builder.Char.Utf8 (fromString)
 
--- Reading commandline parameters
 import System.Environment (getArgs)
-
-type Player = String
-data Game = Game {
-  playerX :: Maybe Player,
-  playerO :: Maybe Player,
-  channel :: Chan ServerEvent,
-  board   :: Board
-}
 
 setPlayer :: Game -> Mark -> Player -> Game
 setPlayer game O playerId = game { playerO = Just playerId }
@@ -48,13 +34,6 @@ setPlayer game X playerId = game { playerX = Just playerId }
 
 whoseTurn :: Game -> Maybe Player
 whoseTurn g = if nextMark (board g) == O then playerO g else playerX g
-
-data Tfoo = Tfoo {
-    seed       :: Int,
-    games      :: MVar [IO Game],
-    nextGameId :: MVar Int,
-    tfooStatic :: Static
-  }
 
 mkYesod "Tfoo" [parseRoutes|
 /                           HomeR GET
@@ -220,7 +199,7 @@ updateGame :: Int -> Game -> Handler ()
 updateGame id game = do
   tfoo <- getYesod
   liftIO $ modifyMVar (games tfoo) (\games ->
-      return (Tfoo.Helpers.replace id (return game) games, games)
+      return (Tfoo.Matrix.replace id (return game) games, games)
     )
   return ()
 

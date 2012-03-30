@@ -1,4 +1,4 @@
-module Tfoo.Helpers where
+module Tfoo.Matrix where
 
 import Data.List
 
