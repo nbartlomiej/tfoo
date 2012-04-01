@@ -6,8 +6,15 @@ An implementation of Five in a Row game (http://en.wikipedia.org/wiki/Gomoku) do
 ==Helpful links
 
 * Yesod book: http://www.yesodweb.com/book
-* Deploying Yesod Apps to Heroku: https://github.com/yesodweb/yesod/wiki/Deploying-Yesod-Apps-to-Heroku
+* Deploying Tfoo and other Haskell apps to Heroku: http://nbartlomiej.com/2012/03/29/deploying-tfoo-and-other-haskell-applications-to-heroku/
 * Blog post about this project is in the works. If you'd like to know more on a specific topic - drop me a line.
+
+==Project structure
+    Tfoo/*.hs          : Most basic, non-IO data and functions.
+    Tfoo/Handlers/*.hs : Only topmost Handler functions.
+    Tfoo/Helpers/*.hs  : IO functions built on top of Tfoo/*.hs code; these
+                         helper functions are used in Handlers.
+    Main.hs            : Main entry point.
 
 ==License
 
