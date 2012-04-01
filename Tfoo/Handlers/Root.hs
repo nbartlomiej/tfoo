@@ -31,7 +31,7 @@ import Blaze.ByteString.Builder.Char.Utf8 (fromString)
 getHomeR :: Handler RepHtml
 getHomeR = do
   tfoo <- getYesod
-  defaultLayout $(widgetFileNoReload "Tfoo/Assets/Templates/index")
+  defaultLayout $(widgetFileNoReload "index")
 
 postGamesR :: Handler RepHtml
 postGamesR = do
@@ -47,7 +47,7 @@ getGameR id = let
     game <- getGame id
     maybePlayers <- lookupSession $ T.pack "players"
     tfoo <- getYesod
-    defaultLayout $(widgetFileNoReload "Tfoo/Assets/Scripts/game")
+    defaultLayout $(widgetFileNoReload "game")
 
 postMarkR :: Int -> Int -> Int -> Handler ()
 postMarkR id x y = do
