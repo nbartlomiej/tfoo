@@ -8,11 +8,12 @@ import Tfoo.Board
 import Tfoo.Game
 
 import Application
+import Tfoo.Helpers.Application
+import Tfoo.Helpers.Game
 
 import Data.Text as T
 import Data.List as L
 import Data.Maybe as M
-import Data.Monoid
 import Control.Monad
 
 import Control.Concurrent.MVar
@@ -20,9 +21,9 @@ import Control.Concurrent.MVar
 import Yesod
 import Yesod.Default.Util
 
-import Network.Wai.EventSource (ServerEvent (..), eventSourceApp)
 import Control.Concurrent.Chan
-import Blaze.ByteString.Builder.Char.Utf8 (fromString)
+import Network.Wai.EventSource (ServerEvent (..), eventSourceApp)
+
 
 getHomeR :: Handler RepHtml
 getHomeR = do
@@ -108,53 +109,3 @@ getChannelR id = do
   response  <- lift $ eventSourceApp channel request
   updateGame id game
   sendWaiResponse response
-
-broadcast :: Int -> String -> [(String, String)] -> Handler ()
-broadcast gameId messageId pairs = do
-  game <- getGame gameId
-  liftIO $ writeChan (channel game) $ serverEvent $ return $ fromString message
-  where message = "{"++(stringifiedPairs $ ("id",messageId):pairs)++"}"
-        stringifiedPairs pairs = L.intercalate ", " $ L.map stringifyPair pairs
-        stringifyPair p = "\""++(fst p) ++ "\": \"" ++ (snd p) ++ "\""
-        serverEvent = ServerEvent Nothing Nothing
-
-joinGame :: Int -> Mark -> Handler ()
-joinGame id mark =
-  do
-    game <- getGame id
-    tfoo <- getYesod
-    appendSession' (T.pack "players") $ T.pack (playerId tfoo)
-    updateGame id $ setPlayer game mark (playerId tfoo)
-    return ()
-  where
-    playerId tfoo = (show $ seed tfoo) ++ (show id) ++ (show mark)
-
--- Appends the given value to the session key.
-appendSession :: Text -> Text -> Handler ()
-appendSession name value = do
-  initial <- lookupSession name
-  setSession name $ fromJust $ initial `mappend` Just value
-
--- Appends the given value to the session key, inserts space before the value.
-appendSession' :: Text -> Text -> Handler ()
-appendSession' name value = appendSession name (T.pack " " `mappend` value)
-
-getGame :: Int -> Handler Game
-getGame id = do
-  tfoo <- getYesod
-  maxId <- liftIO $ readMVar $ nextGameId tfoo
-  list  <- liftIO $ readMVar $ games tfoo
-  if id < maxId
-    then (liftIO $ (list) !! id) >>= (\game -> return game)
-    else notFound
-
--- todo: refactor
-updateGame :: Int -> Game -> Handler ()
-updateGame id game = do
-  tfoo <- getYesod
-  liftIO $ modifyMVar (games tfoo) (\games ->
-      return (Tfoo.Matrix.replace id (return game) games, games)
-    )
-  return ()
-
-
