@@ -75,7 +75,6 @@ postMarkR id x y = do
           then permissionDenied $ T.pack "Permission Denied"
           else return ()
         elem' x y = (elem . L.words . T.unpack)
-        userAuthorizations' = L.words . T.unpack
 
 postPlayerOR :: Int -> Handler RepHtml
 postPlayerOR id = do
