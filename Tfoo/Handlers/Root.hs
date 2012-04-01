@@ -48,33 +48,22 @@ getGameR id = let
 
 postMarkR :: Int -> Int -> Int -> Handler ()
 postMarkR id x y = do
-    game               <- getGame id
-    whoseTurn'         <- return $ whoseTurn game
-    board'             <- return $ board game
-    userAuthorizations <- do
-      authorizations <- lookupSession $ T.pack "players"
-      return $ fmap (L.words . T.unpack) authorizations
+    game   <- getGame id
+    board' <- return $ board game
+    mark   <- return $ nextMark board'
+    authorizations <- playerAuthorizations
 
-    -- The target cell has to be empty.
-    require $ (getCell (board game) x y) == Nothing
-    -- User has to be authorized to make this move
-    require $ fromMaybe False (liftM2 elem whoseTurn' userAuthorizations)
-    -- The game has to be still in progress
-    require $ (winner board') == Nothing
+    require $ validMove x y game authorizations
+    updateGame id $ game {board = replace' x y (Just mark) board'}
 
-    updateGame id $ game {board = replace' x y (Just $ nextMark board') board'}
     game' <- getGame id
 
-    broadcast id "mark-new" [
-        ("x", show x), ("y", show y), ("mark", show (nextMark board'))
-      ]
-
+    broadcast id "mark-new" [("x", show x), ("y", show y), ("mark", show mark)]
     broadcast id "alert" [("content", gameState game')]
 
   where require result = if result == False
           then permissionDenied $ T.pack "Permission Denied"
           else return ()
-        elem' x y = (elem . L.words . T.unpack)
 
 postPlayerOR :: Int -> Handler RepHtml
 postPlayerOR id = do

@@ -7,8 +7,9 @@ import Tfoo.Board
 import Tfoo.Matrix
 import Tfoo.Foundation
 
-import Data.Text hiding (map, intercalate)
+import Data.Text hiding (map, intercalate, words)
 import Data.List
+import Data.Maybe
 
 import Yesod
 
@@ -55,3 +56,20 @@ broadcast gameId messageId pairs = do
         stringifiedPairs pairs = intercalate ", " $ map stringifyPair pairs
         stringifyPair p = "\""++(fst p) ++ "\": \"" ++ (snd p) ++ "\""
         serverEvent = ServerEvent Nothing Nothing
+
+validMove :: Int -> Int -> Game -> [Player] -> Bool
+validMove x y game authorizations =
+  let whoseTurn' = whoseTurn game
+      board' = board game
+      gameInProgress = (winner board') == Nothing
+      targetCellEmpty = (getCell board' x y) == Nothing
+      playerAuthorized =
+        fromMaybe False $ liftM (`elem` authorizations) whoseTurn'
+  in gameInProgress && targetCellEmpty && playerAuthorized
+
+playerAuthorizations :: Handler [Player]
+playerAuthorizations = do
+  authorizations <- lookupSession $ pack "players"
+  if authorizations == Nothing
+    then return []
+    else return $ fromJust $ fmap (words . unpack) authorizations
