@@ -7,6 +7,8 @@ import Tfoo.Matrix
 import Tfoo.Board
 import Tfoo.Game
 
+import Application
+
 import Tfoo.Handlers.Root
 
 import Data.Text as T

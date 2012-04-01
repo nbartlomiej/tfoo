@@ -8,6 +8,8 @@ import Tfoo.Matrix
 import Tfoo.Board
 import Tfoo.Game
 
+import Application
+
 import Data.Text as T
 import Data.List as L
 import Data.Maybe as M
