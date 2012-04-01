@@ -1,5 +1,4 @@
-{-# LANGUAGE TypeFamilies, QuasiQuotes, MultiParamTypeClasses,
-             TemplateHaskell, OverloadedStrings #-}
+{-# LANGUAGE  MultiParamTypeClasses, TemplateHaskell #-}
 module Main where
 
 import Tfoo.Foundation

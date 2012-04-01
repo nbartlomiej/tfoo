@@ -1,6 +1,3 @@
-{-# LANGUAGE TypeFamilies, QuasiQuotes, MultiParamTypeClasses,
-             TemplateHaskell, OverloadedStrings #-}
-
 module Tfoo.Foundation where
 
 import Tfoo.Game
