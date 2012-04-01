@@ -3,33 +3,21 @@
 module Main where
 
 import Tfoo.Foundation
-import Tfoo.Matrix
 import Tfoo.Board
 import Tfoo.Game
 
 import Application
-
 import Tfoo.Handlers.Root
 
-import Data.Text as T
-import Data.List as L
-import Data.Maybe as M
-import Data.Monoid
-import System.Random as Random
-import Control.Monad
-
-import Control.Concurrent.MVar
+import Data.List
 
 import Yesod
 import Yesod.Static
-import Text.Hamlet (hamletFile)
-import Text.Lucius (luciusFile)
-import Text.Julius (juliusFile)
 
-import Network.Wai.EventSource (ServerEvent (..), eventSourceApp)
+import Control.Concurrent.MVar
 import Control.Concurrent.Chan
-import Blaze.ByteString.Builder.Char.Utf8 (fromString)
 
+import System.Random as Random
 import System.Environment (getArgs)
 
 mkYesodDispatch "Tfoo" resourcesTfoo

@@ -14,17 +14,12 @@ import Data.Text as T
 import Data.List as L
 import Data.Maybe as M
 import Data.Monoid
-import System.Random as Random
 import Control.Monad
 
 import Control.Concurrent.MVar
 
 import Yesod
 import Yesod.Default.Util
-import Yesod.Static
-import Text.Hamlet (hamletFile)
-import Text.Lucius (luciusFile)
-import Text.Julius (juliusFile)
 
 import Network.Wai.EventSource (ServerEvent (..), eventSourceApp)
 import Control.Concurrent.Chan

@@ -4,16 +4,8 @@
 module Tfoo.Foundation where
 
 import Tfoo.Game
-
-import Yesod
 import Yesod.Static
-
-import Text.Hamlet (hamletFile)
-import Text.Lucius (luciusFile)
-import Text.Julius (juliusFile)
-
 import Control.Concurrent.MVar
-import Data.Text as T
 
 data Tfoo = Tfoo {
     seed       :: Int,

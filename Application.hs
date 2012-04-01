@@ -9,8 +9,6 @@ import Yesod
 import Yesod.Static
 
 import Text.Hamlet (hamletFile)
-import Text.Lucius (luciusFile)
-import Text.Julius (juliusFile)
 
 mkYesodData "Tfoo" [parseRoutes|
 /                           HomeR GET
