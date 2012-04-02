@@ -70,6 +70,4 @@ validMove x y game authorizations =
 playerAuthorizations :: Handler [Player]
 playerAuthorizations = do
   authorizations <- lookupSession $ pack "players"
-  if authorizations == Nothing
-    then return []
-    else return $ fromJust $ fmap (words . unpack) authorizations
+  return $ fromMaybe [] $ fmap (words . unpack) authorizations
