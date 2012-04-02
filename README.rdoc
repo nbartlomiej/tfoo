@@ -16,6 +16,19 @@ An implementation of Five in a Row game (http://en.wikipedia.org/wiki/Gomoku) do
                          helper functions are used in Handlers.
     Main.hs            : Main entry point.
 
+==Dependencies
+The project lacks Cabal file. I'll add one in my free time (pull requests
+welcome too!). Below, for quick reference, a list of all dependencies.
+
+    wai-eventsource
+    yesod
+    yesod-static
+    yesod-default
+    blaze-builder
+    shakespeare-js
+    shakespeare-css
+    hamlet
+
 ==License
 
 MIT, see LICENSE file for details.
