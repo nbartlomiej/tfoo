@@ -43,8 +43,8 @@ postGamesR = do
 
 getGameR :: Int -> Handler RepHtml
 getGameR id = let
-    columns = [0..19]
-    rows    = [0..19]
+    columns = [0..10]
+    rows    = [0..10]
   in do
     game <- getGame id
     maybePlayers <- lookupSession $ T.pack "players"
@@ -64,7 +64,9 @@ postMarkR id x y = do
 
     if (nextMark $ board game') == O && (playerO game') == (Just "AI")
       then let (x', y') = aiResponse (board game')
-           in  placeMark id x' y'
+           in do
+             require $ validMove x' y' game' ["AI"]
+             placeMark id x' y'
       else return ()
 
   where require result = if result == False

@@ -22,3 +22,13 @@ diagonals matrix =
       diagonalsNW m = map diagonal ([m] ++ tails' m ++ tails' (transpose m))
   in diagonalsNW matrix ++ diagonalsNW (map reverse matrix)
 
+difference :: (Eq a) => Matrix a -> Matrix a -> [(Int, Int)]
+difference a b =
+  let enumeratedRows = zip3 a b [0..]
+      enumerateEntry (a,b,x) = zip4 a b (repeat x) [0..]
+      enumeratedEntries = concat $ map enumerateEntry enumeratedRows
+      compareEntries a b = fst a == fst b && snd a == snd b
+      different (a,b,_,_) = a /= b
+      differentEntries = filter different enumeratedEntries
+      entryCoordinates (_,_,x,y) = (x,y)
+  in  map entryCoordinates differentEntries

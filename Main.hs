@@ -29,7 +29,7 @@ createGame = do
     playerO = Nothing,
     playerX = Nothing,
     channel = channel,
-    board   = generateBoard 20
+    board   = generateBoard 11
   }
 
 gameStream :: [IO Game]
