@@ -6,10 +6,10 @@
     \ Play ↓ or <a target=_blank href=https://github.com/nbartlomiej/tfoo>view source</a>.
   <div .play>
     <form method=post action=@{GamesR}>
-      <hidden name=humanPlayerCount value=1>
+      <input type=hidden name=humans value=1>
       <input type=submit value="VS. Computer">
     <form method=post action=@{GamesR}>
-      <hidden name=humanPlayerCount value=2>
+      <input type=hidden name=humans value=2>
       <input type=submit value="VS. Human">
 
 <div #social_media_wrapper>
