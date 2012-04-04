@@ -5,8 +5,10 @@
     An implementation of <a target=_blank href=http://en.wikipedia.org/wiki/Gomoku>Five in a Row</a> game that utilizes <a target=_blank .tech-link href=http://www.haskell.org/haskellwiki/Haskell>Haskell</a> programming language, <a target=_blank .tech-link href=http://www.yesodweb.com/>Yesod</a> web framework and <a target=_blank .tech-link href=http://caniuse.com/eventsource>Server-sent Events</a>.
   <div .play>
     <form method=post action=@{GamesR}>
+      <hidden name=humanPlayerCount value=1>
       <input type=submit value="VS. Computer">
     <form method=post action=@{GamesR}>
+      <hidden name=humanPlayerCount value=2>
       <input type=submit value="VS. Human">
 
 <div #social_media_wrapper>
