@@ -37,7 +37,7 @@ postGamesR = do
     id   <- liftIO $ newGame tfoo
     Just single <- runInputPost $ Just <$> iopt hiddenField (T.pack "single")
     if isJust single
-      then setupComputerPlayer id
+      then newSinglePlayerGame id
       else return ()
     redirect $ GameR id
 
@@ -55,16 +55,17 @@ postMarkR :: Int -> Int -> Int -> Handler ()
 postMarkR id x y = do
     game   <- getGame id
     board' <- return $ board game
-    mark   <- return $ nextMark board'
     authorizations <- playerAuthorizations
 
     require $ validMove x y game authorizations
-    updateGame id $ game {board = replace' x y (Just mark) board'}
+    placeMark id x y
 
     game' <- getGame id
 
-    broadcast id "mark-new" [("x", show x), ("y", show y), ("mark", show mark)]
-    broadcast id "alert" [("content", gameState game')]
+    if (nextMark $ board game') == O && (playerO game') == (Just "AI")
+      then let (x', y') = aiResponse (board game')
+           in  placeMark id x' y'
+      else return ()
 
   where require result = if result == False
           then permissionDenied $ T.pack "Permission Denied"

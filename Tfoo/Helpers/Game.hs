@@ -48,6 +48,18 @@ joinGame id mark =
   where
     playerId tfoo = (show $ seed tfoo) ++ (show id) ++ (show mark)
 
+newSinglePlayerGame :: Int -> Handler ()
+newSinglePlayerGame id = do
+  joinGame id X
+  addAi id O
+  return ()
+
+addAi :: Int -> Mark -> Handler ()
+addAi id mark = do
+  game <- getGame id
+  updateGame id $ setPlayer game mark "AI"
+  return ()
+
 broadcast :: Int -> String -> [(String, String)] -> Handler ()
 broadcast gameId messageId pairs = do
   game <- getGame gameId
@@ -67,11 +79,18 @@ validMove x y game authorizations =
         fromMaybe False $ liftM (`elem` authorizations) whoseTurn'
   in gameInProgress && targetCellEmpty && playerAuthorized
 
+placeMark :: Int -> Int -> Int -> Handler ()
+placeMark id x y = do
+    game   <- getGame id
+    board' <- return $ board game
+    mark   <- return $ nextMark board'
+    updateGame id $ game {board = replace' x y (Just mark) board'}
+
+    game' <- getGame id
+    broadcast id "mark-new" [("x", show x), ("y", show y), ("mark", show mark)]
+    broadcast id "alert" [("content", gameState game')]
+
 playerAuthorizations :: Handler [Player]
 playerAuthorizations = do
   authorizations <- lookupSession $ pack "players"
   return $ fromMaybe [] $ fmap (words . unpack) authorizations
-
-setupComputerPlayer :: Int -> Handler ()
-setupComputerPlayer id = do
-      return ()

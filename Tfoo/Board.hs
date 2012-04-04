@@ -28,3 +28,6 @@ winner board
 nextMark :: Board -> Mark
 nextMark board = if (count X) <= (count O) then X else O where
   count mark = length $ filter (Just mark == ) $ concat board
+
+aiResponse :: Board -> (Int, Int)
+aiResponse _ = (1,2)
