@@ -14,8 +14,9 @@ import Tfoo.Helpers.Game
 import Data.Text as T
 import Data.List as L
 import Data.Maybe as M
-import Control.Monad
 
+import Control.Monad
+import Control.Applicative
 import Control.Concurrent.MVar
 
 import Yesod
@@ -34,6 +35,10 @@ postGamesR :: Handler RepHtml
 postGamesR = do
     tfoo <- getYesod
     id   <- liftIO $ newGame tfoo
+    Just single <- runInputPost $ Just <$> iopt hiddenField (T.pack "single")
+    if isJust single
+      then setupComputerPlayer id
+      else return ()
     redirect $ GameR id
 
 getGameR :: Int -> Handler RepHtml

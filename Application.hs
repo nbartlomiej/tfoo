@@ -1,4 +1,5 @@
-{-# LANGUAGE TypeFamilies, QuasiQuotes, TemplateHaskell, OverloadedStrings #-}
+{-# LANGUAGE TypeFamilies, QuasiQuotes, TemplateHaskell, OverloadedStrings,
+             MultiParamTypeClasses #-}
 
 module Application where
 
@@ -29,4 +30,6 @@ instance Yesod Tfoo where
       addScript $ StaticR $ StaticRoute ["scripts","jquery.wiggle.js"] []
     hamletToRepHtml $(hamletFile "templates/layout.hamlet")
 
+instance RenderMessage Tfoo FormMessage where
+  renderMessage _ _ = defaultFormMessage
 

@@ -71,3 +71,7 @@ playerAuthorizations :: Handler [Player]
 playerAuthorizations = do
   authorizations <- lookupSession $ pack "players"
   return $ fromMaybe [] $ fmap (words . unpack) authorizations
+
+setupComputerPlayer :: Int -> Handler ()
+setupComputerPlayer id = do
+      return ()
