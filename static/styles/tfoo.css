@@ -121,21 +121,33 @@ button:hover , input[type="submit"]:hover , .buttonify:hover {
   margin: 1em 0;
 }
 
+.landing-page div.play {
+  width: 100%;
+  overflow: auto;
+  margin: 0px;
+  padding: 0px;
+}
+
 .landing-page div form {
   text-align: center;
-  margin: 1em 0;
+  float: left;
+  width: 50%;
 }
 
 #social-media {
   width: 100%;
   overflow: auto;
-  margin: -40px 0px 0px 0px;
-  height: 40px;
+  margin: 0px 0px 0px 0px;
+  height: 20px;
 }
 
-#social-media .left , #social-media .right {
+#social_media_wrapper {
+  width: 520px;
+  padding: 10px;
+  box-shadow: rgba(0,0,0,0.4) 0px 0px 15px 0px;
+  margin: 0px auto;
+  background: rgba(255,255,255,0.7);
 }
-
 
 #social-media .left {
   margin: 0px;
