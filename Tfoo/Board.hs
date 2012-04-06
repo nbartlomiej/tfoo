@@ -41,22 +41,23 @@ aiMoves :: Board -> [Board]
 aiMoves board =
   let lengths = [0 .. (length board - 1)]
       available x y = board !! x !! y == Nothing
-  in  [ replace' x y (Just X) board | x <- lengths, y <- lengths, available x y ]
+  in  [ replace' x y (Just O) board | x <- lengths, y <- lengths, available x y ]
 
 evaluate :: Board -> Int
 evaluate board =
   let knowledge' = [
         -- Not the brightest AI, has only few rules; add more if you wish!
-        ( [Just O , Just O  , Just O  , Just O  , Nothing] , -1000 ),
-        ( [Just O , Just O  , Just O  , Nothing , Just O]  , -1000 ),
-        ( [Just O , Just O  , Nothing , Just O  , Just O]  , -1000 ),
-        ( [Just O , Just O  , Just O  , Nothing]           , -100 ),
-        ( [Just O , Just O  , Nothing , Just O, Nothing]            , -100 ),
-        ( [Just X , Just X  , Just X  , Just X  , Just X]  , 1000000 ),
-        ( [Just X , Just X  , Just X  , Just X  , Nothing] , 100 ),
-        ( [Just X , Just X  , Just X  , Nothing , Nothing] , 4 ),
-        ( [Just X , Just X  , Nothing , Nothing , Nothing] , 2 ),
-        ( [Just X , Nothing , Nothing , Nothing , Nothing] , 1 )
+        ( [Just X , Just X  , Just X  , Just X  , Nothing] , -1000 ),
+        ( [Just X , Just X  , Just X  , Nothing , Just X]  , -1000 ),
+        ( [Just X , Just X  , Nothing , Just X  , Just X]  , -1000 ),
+        ( [Nothing, Just X , Just X  , Just X  , Nothing]  , -100 ),
+        ( [Nothing, Just X , Just X  , Nothing , Just X, Nothing] , -100 ),
+        ( [Nothing, Just X , Nothing  , Nothing , Nothing] , -2),
+        ( [Just O , Just O  , Just O  , Just O  , Just O]  , 1000000 ),
+        ( [Just O , Just O  , Just O  , Just O  , Nothing] , 100 ),
+        ( [Nothing, Just O , Just O  , Just O   , Nothing] , 5 ),
+        ( [Nothing, Just O , Just O  , Nothing  , Nothing] , 3 ),
+        ( [Nothing, Just O , Nothing , Nothing , Nothing] , 1 )
         ]
       reversePatterns (pattern, score) = (reverse pattern,score)
       knowledge = knowledge' ++ (map reversePatterns knowledge')
