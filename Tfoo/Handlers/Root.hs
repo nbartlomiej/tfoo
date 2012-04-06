@@ -43,8 +43,8 @@ postGamesR = do
 
 getGameR :: Int -> Handler RepHtml
 getGameR id = let
-    columns = [0..10]
-    rows    = [0..10]
+    columns = [0..19]
+    rows    = [0..19]
   in do
     game <- getGame id
     maybePlayers <- lookupSession $ T.pack "players"

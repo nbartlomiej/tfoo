@@ -21,8 +21,8 @@ patterns board = board ++ (transpose board) ++ (diagonals board)
 
 winner :: Board -> Maybe Mark
 winner board
-  | any (findList [Just O, Just O, Just O, Just O, Just O]) (patterns board) = Just O
-  | any (findList [Just X, Just X, Just X, Just X, Just X]) (patterns board) = Just X
+  | any (isInfixOf [Just O, Just O, Just O, Just O, Just O]) (patterns board) = Just O
+  | any (isInfixOf [Just X, Just X, Just X, Just X, Just X]) (patterns board) = Just X
   | otherwise = Nothing
 
 nextMark :: Board -> Mark
@@ -32,11 +32,11 @@ nextMark board = if (count X) <= (count O) then X else O where
 aiResponse :: Board -> (Int, Int)
 aiResponse board =
   let b = maximumBy (\a b -> compare (evaluate a) (evaluate b)) $ aiMoves board
-  in head $ difference board b
+  in head $ differences board b
 
 aiMoves :: Board -> [Board]
 aiMoves board =
-  let lengths  = [0 .. (length board - 1)]
+  let lengths = [0 .. (length board - 1)]
       available x y = board !! x !! y == Nothing
   in  [ replace' x y (Just X) board | x <- lengths, y <- lengths, available x y ]
 
@@ -54,6 +54,6 @@ evaluate board =
         ( [Just X , Just X  , Nothing , Nothing , Nothing]    , 2 ),
         ( [Just X , Nothing , Nothing , Nothing , Nothing]    , 1 )
         ]
-      ratePattern' p = map (\(k,s) -> if (findList k p) then s else 0) knowledge
+      ratePattern' p = map (\(k,s) -> if (isInfixOf k p) then s else 0) knowledge
       ratePattern p = (ratePattern' p) ++ (ratePattern' $ reverse p)
   in sum $ concat $ map ratePattern (patterns board)

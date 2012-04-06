@@ -5,9 +5,6 @@ import Data.List
 replace :: Int -> a -> [a] -> [a]
 replace index element list = (take index list) ++ [element] ++ (drop (index+1) list)
 
-findList :: (Eq a) => [a] -> [a] -> Bool
-findList sequence list = sequence `elem` concat (map inits (tails list))
-
 type Matrix a = [[a]]
 
 replace' :: Int -> Int -> a -> Matrix a -> Matrix a
@@ -22,8 +19,8 @@ diagonals matrix =
       diagonalsNW m = map diagonal ([m] ++ tails' m ++ tails' (transpose m))
   in diagonalsNW matrix ++ diagonalsNW (map reverse matrix)
 
-difference :: (Eq a) => Matrix a -> Matrix a -> [(Int, Int)]
-difference a b =
+differences :: (Eq a) => Matrix a -> Matrix a -> [(Int, Int)]
+differences a b =
   let enumeratedRows = zip3 a b [0..]
       enumerateEntry (a,b,x) = zip4 a b (repeat x) [0..]
       enumeratedEntries = concat $ map enumerateEntry enumeratedRows
