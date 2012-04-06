@@ -31,8 +31,11 @@ nextMark board = if (count X) <= (count O) then X else O where
 
 aiResponse :: Board -> (Int, Int)
 aiResponse board =
-  let b = maximumBy (\a b -> compare (evaluate a) (evaluate b)) $ aiMoves board
-  in head $ differences board b
+  let addScore board = (board, evaluate board)
+      compareScores a b = compare (snd a) (snd b)
+      removeScore = fst
+      best = removeScore $ maximumBy compareScores $ map addScore $ aiMoves board
+  in  head $ differences board best
 
 aiMoves :: Board -> [Board]
 aiMoves board =
@@ -42,18 +45,22 @@ aiMoves board =
 
 evaluate :: Board -> Int
 evaluate board =
-  let knowledge = [
+  let knowledge' = [
         -- Not the brightest AI, has only few rules; add more if you wish!
-        ( [Just O , Just O   , Just O   , Just O   , Nothing] , -1000 ),
-        ( [Just O , Just O   , Just O   , Nothing  , Just O]  , -1000 ),
-        ( [Just O , Just O   , Nothing  , Just O   , Just O]  , -1000 ),
-        ( [Just O , Just O   , Just O   , Nothing]            , -100 ),
-        ( [Just X , Just X   , Just X   , Just X   , Just X]  , 1000000 ),
-        ( [Just X , Just X  , Just X  , Just X  , Nothing]    , 100 ),
-        ( [Just X , Just X  , Just X  , Nothing , Nothing]    , 4 ),
-        ( [Just X , Just X  , Nothing , Nothing , Nothing]    , 2 ),
-        ( [Just X , Nothing , Nothing , Nothing , Nothing]    , 1 )
+        ( [Just O , Just O  , Just O  , Just O  , Nothing] , -1000 ),
+        ( [Just O , Just O  , Just O  , Nothing , Just O]  , -1000 ),
+        ( [Just O , Just O  , Nothing , Just O  , Just O]  , -1000 ),
+        ( [Just O , Just O  , Just O  , Nothing]           , -100 ),
+        ( [Just O , Just O  , Nothing , Just O, Nothing]            , -100 ),
+        ( [Just X , Just X  , Just X  , Just X  , Just X]  , 1000000 ),
+        ( [Just X , Just X  , Just X  , Just X  , Nothing] , 100 ),
+        ( [Just X , Just X  , Just X  , Nothing , Nothing] , 4 ),
+        ( [Just X , Just X  , Nothing , Nothing , Nothing] , 2 ),
+        ( [Just X , Nothing , Nothing , Nothing , Nothing] , 1 )
         ]
-      ratePattern' p = map (\(k,s) -> if (isInfixOf k p) then s else 0) knowledge
-      ratePattern p = (ratePattern' p) ++ (ratePattern' $ reverse p)
-  in sum $ concat $ map ratePattern (patterns board)
+      reversePatterns (pattern, score) = (reverse pattern,score)
+      knowledge = knowledge' ++ (map reversePatterns knowledge')
+      ratePattern p = map (\(k,s) -> if (isInfixOf k p) then s else 0) knowledge
+      knownPatterns = (map fst knowledge)
+      hasKnownPattern pattern = any (\y -> isInfixOf y pattern ) knownPatterns
+  in sum $ concat $ map ratePattern $ filter hasKnownPattern (patterns board)
