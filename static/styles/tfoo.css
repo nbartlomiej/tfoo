@@ -152,6 +152,9 @@ button:hover , input[type="submit"]:hover , .buttonify:hover {
 #social-media .left {
   margin: 0px;
   float: left;
+  height: 20px;
+  width: 200px;
+  overflow: hidden;
 }
 
 #social-media .right {
@@ -159,6 +162,8 @@ button:hover , input[type="submit"]:hover , .buttonify:hover {
   float: right;
   text-align: right;
   width: 200px;
+  height: 20px;
+  overflow: hidden;
 }
 
 .author {
