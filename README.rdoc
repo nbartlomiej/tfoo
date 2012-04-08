@@ -1,12 +1,19 @@
 =Tfoo
 
 == About
-An implementation of Five in a Row game (http://en.wikipedia.org/wiki/Gomoku) done in Haskell and Yesod with Server Events.
+An implementation of {Five in a Row}[http://en.wikipedia.org/wiki/Gomoku] game done in {Haskell}[http://www.haskell.org/] and {Yesod}[http://www.yesodweb.com/] with {Server-sent Events}[http://caniuse.com/eventsource].
+
+Demo: http://tfoo.herokuapp.com
+{<img src="http://i.imgur.com/fW4Wu.png" />}[http://tfoo.herokuapp.com]
+
+It is based on a previous project of mine, {takefive}[https://github.com/nbartlomiej/takefive], which is a minimal Five in a Row implementation. If you're new to Haskell and would like to see sample code, inspect {takefive's source code}[https://github.com/nbartlomiej/takefiv://github.com/nbartlomiej/takefive/blob/master/takefive.hs].
+
+Tfoo is an attempt to create simple, modern and useful Haskell web application. It doesn't require any database setup (because it doesn't use database) and its deployment is relatively easy (see: {Deploying Tfoo and other Haskell applications to Heroku}[http://nbartlomiej.com/2012/03/29/deploying-tfoo-and-other-haskell-applications-to-heroku/] ). Some people say that it is also an enjoyable game.
 
 ==Helpful links
 
-* Yesod book: http://www.yesodweb.com/book
-* Deploying Tfoo and other Haskell apps to Heroku: http://nbartlomiej.com/2012/03/29/deploying-tfoo-and-other-haskell-applications-to-heroku/
+* {Yesod book}[http://www.yesodweb.com/book]
+* {Deploying Tfoo and other Haskell applications to Heroku}[http://nbartlomiej.com/2012/03/29/deploying-tfoo-and-other-haskell-applications-to-heroku/]
 * Blog post about this project is in the works. If you'd like to know more on a specific topic - drop me a line.
 
 ==Project structure
@@ -28,6 +35,15 @@ welcome too!). Below, for quick reference, a list of all dependencies.
     shakespeare-js
     shakespeare-css
     hamlet
+
+== ToDo
+(pull requests welcome)
+
+* Add cabal file.
+* Improve AI (make it faster; implement minimax).
+* Create a mobile view.
+* Create a (public) dashboard that would show current games (real-time).
+* There is a bug that causes Server-sent Events not being propagated after ~3 minutes of client (Safari browser) waiting. Investigate and fix.
 
 ==License
 
