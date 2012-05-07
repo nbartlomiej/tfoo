@@ -27,14 +27,14 @@ Tfoo is an attempt to create simple, modern and useful Haskell web application. 
 The project lacks Cabal file. I'll add one in my free time (pull requests
 welcome too!). Below, for quick reference, a list of all dependencies.
 
-    wai-eventsource
-    yesod
-    yesod-static
-    yesod-default
-    blaze-builder
-    shakespeare-js
-    shakespeare-css
-    hamlet
+    wai-eventsource (1.1.0.1)
+    yesod (0.10.2)
+    yesod-static (0.10.1)
+    yesod-default (0.6.1)
+    blaze-builder (0.3.1.0)
+    shakespeare-js (0.11.2)
+    shakespeare-css (0.10.8)
+    hamlet (0.10.9.1)
 
 == ToDo
 (pull requests welcome)
