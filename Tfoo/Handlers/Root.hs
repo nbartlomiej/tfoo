@@ -1,4 +1,5 @@
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE QuasiQuotes           #-}
 
 module Tfoo.Handlers.Root where
 
@@ -21,27 +22,30 @@ import Control.Concurrent.MVar
 
 import Yesod
 import Yesod.Default.Util
+import Text.Julius
 
 import Control.Concurrent.Chan
-import Network.Wai.EventSource (ServerEvent (..), eventSourceApp)
+import Network.Wai.EventSource (ServerEvent (..), eventSourceAppChan)
+import Data.Default
+import Network.Wai.Internal (ResponseReceived(..))
 
 
-getHomeR :: Handler RepHtml
+getHomeR :: Handler Html
 getHomeR = do
   tfoo <- getYesod
-  defaultLayout $(widgetFileNoReload "index")
+  defaultLayout $(widgetFileNoReload def "index")
 
-postGamesR :: Handler RepHtml
+postGamesR :: Handler Html
 postGamesR = do
     tfoo <- getYesod
     id   <- liftIO $ newGame tfoo
-    Just single <- runInputPost $ Just <$> iopt hiddenField (T.pack "single")
-    if isJust single
+    single <- runInputPost $ iopt hiddenField (T.pack "single")
+    if single == Just ("true" :: String)
       then newSinglePlayerGame id
       else return ()
     redirect $ GameR id
 
-getGameR :: Int -> Handler RepHtml
+getGameR :: Int -> Handler Html
 getGameR id = let
     columns = [0..19]
     rows    = [0..19]
@@ -49,7 +53,7 @@ getGameR id = let
     game <- getGame id
     maybePlayers <- lookupSession $ T.pack "players"
     tfoo <- getYesod
-    defaultLayout $(widgetFileNoReload "game")
+    defaultLayout $(widgetFileNoReload def "game")
 
 postMarkR :: Int -> Int -> Int -> Handler ()
 postMarkR id x y = do
@@ -73,7 +77,7 @@ postMarkR id x y = do
           then permissionDenied $ T.pack "Permission Denied"
           else return ()
 
-postPlayerOR :: Int -> Handler RepHtml
+postPlayerOR :: Int -> Handler Html
 postPlayerOR id = do
   game <- getGame id
   if (playerO game) == Nothing
@@ -85,7 +89,7 @@ postPlayerOR id = do
     else return ()
   redirect $ GameR id
 
-postPlayerXR :: Int -> Handler RepHtml
+postPlayerXR :: Int -> Handler Html
 postPlayerXR id = do
   game <- getGame id
   if (playerX game) == Nothing
@@ -101,7 +105,5 @@ getChannelR :: Int -> Handler ()
 getChannelR id = do
   game <- getGame id
   channel <- liftIO $ dupChan $ channel game
-  request  <- waiRequest
-  response  <- lift $ eventSourceApp channel request
+  sendWaiApplication (eventSourceAppChan channel)
   updateGame id game
-  sendWaiResponse response

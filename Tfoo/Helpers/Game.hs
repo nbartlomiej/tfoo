@@ -17,7 +17,7 @@ import Control.Monad
 import Control.Concurrent.MVar
 import Control.Concurrent.Chan
 
-import Network.Wai.EventSource (ServerEvent (..), eventSourceApp)
+import Network.Wai.EventSource (ServerEvent (..) )
 import Blaze.ByteString.Builder.Char.Utf8 (fromString)
 
 getGame :: Int -> Handler Game

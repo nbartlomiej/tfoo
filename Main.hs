@@ -1,4 +1,4 @@
-{-# LANGUAGE  MultiParamTypeClasses, TemplateHaskell #-}
+{-# LANGUAGE  MultiParamTypeClasses, TemplateHaskell, ViewPatterns, OverloadedStrings #-}
 module Main where
 
 import Tfoo.Foundation
@@ -42,7 +42,7 @@ main = do
   seedP   <- liftIO $ Random.getStdGen >>= (\x -> return $ next x)
   static' <- static "static"
   args    <- getArgs
-  warpDebug (getPort args) (Tfoo (fst seedP) games nextGameId static')
+  warp (getPort args) (Tfoo (fst seedP) games nextGameId static')
 
 getPort :: [String] -> Int
 getPort args = extractPort $ "-p" `elemIndex` args
