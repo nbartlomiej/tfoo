@@ -2,7 +2,7 @@ module Tfoo.Game where
 
 import Tfoo.Board
 
-import Network.Wai.EventSource (ServerEvent (..), eventSourceApp)
+import Network.Wai.EventSource (ServerEvent (..))
 import Control.Concurrent.Chan
 
 type Player = String

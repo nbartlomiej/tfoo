@@ -25,7 +25,7 @@ $(document).ready(function() {
     $(element).click(function(){
       var x = $(element).attr('data-x');
       var y = $(element).attr('data-y');
-      post('#{show id}/mark/' + x + '/' + y);
+      post('#{rawJS $ show id}/mark/' + x + '/' + y);
     });
   });
 });

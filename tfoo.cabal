@@ -1,0 +1,33 @@
+name:                tfoo
+version:             0.1.0.0
+synopsis:            Five in a row
+-- description:         
+homepage:            https://github.com/nbartlomiej/tfoo
+-- license:             
+license-file:        LICENSE
+author:              Bartlomiej Niemtur
+maintainer:          nbartlomiej@gmail.com
+-- copyright:           
+category:            Game
+build-type:          Simple
+extra-source-files:  README.rdoc
+cabal-version:       >=1.10
+
+executable tfoo
+  main-is:          Main.hs
+  other-modules:    Application,
+                    Tfoo.Board,
+                    Tfoo.Foundation,
+                    Tfoo.Game,
+                    Tfoo.Handlers.Root,
+                    Tfoo.Helpers.Application,
+                    Tfoo.Helpers.Game,
+                    Tfoo.Matrix
+
+  other-extensions:    TypeFamilies, QuasiQuotes, TemplateHaskell, OverloadedStrings, MultiParamTypeClasses, ViewPatterns
+  build-depends:       base >=4.8, random, text, 
+    wai-eventsource, yesod, yesod-static, yesod-default, blaze-builder,
+    shakespeare, hamlet, wai-extra, data-default, wai
+
+  -- hs-source-dirs:      
+  default-language:    Haskell2010
